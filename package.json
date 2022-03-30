@@ -1,7 +1,7 @@
 {
-  "name": "hexo-butterfly-swiper",
-  "version": "1.0.12",
-  "description": "A Slideshow  plugin for theme-butterfly based on swiper",
+  "name": "hexo-shoka-swiper",
+  "version": "1.0.13",
+  "description": "A Slideshow  plugin for theme-shoka based on swiper",
   "main": "index.js",
   "scripts": {
     "eslint": "eslint ."
@@ -18,17 +18,17 @@
     "renderer",
     "swiper",
     "Slideshow",
-    "butterfly",
-    "theme-butterfly",
+    "shoka",
+    "theme-shoka",
     "plugins"
   ],
-  "author": "akilarlxh",
+  "author": ["akilarlxh", "llxlr"],
   "license": "Apache-2.0",
   "dependencies": {
     "pug": "^3.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Akilarlxh/hexo-butterfly-swiper.git"
+    "url": "https://github.com/llxlr/hexo-shoka-swiper.git"
   }
 }
