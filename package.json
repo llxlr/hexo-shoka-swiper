@@ -1,6 +1,6 @@
 {
   "name": "hexo-shoka-swiper",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A Slideshow  plugin for theme-shoka based on swiper",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,10 @@
     "theme-shoka",
     "plugins"
   ],
-  "author": ["akilarlxh", "llxlr"],
+  "author": [
+    "akilarlxh",
+    "llxlr"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "pug": "^3.0.0"
