@@ -1,39 +1,39 @@
-# hexo-butterfly-swiper
+# hexo-shoka-swiper
 
-给`hexo-theme-butterfly`添加 [首页轮播图](https://akilar.top/posts/8e1264d1/)
+给`hexo-theme-shoka`添加 [首页轮播图](https://akilar.top/posts/8e1264d1/)
 
 # 安装
 
-1. 安装插件,在博客根目录`[Blogroot]`下打开终端，运行以下指令：
+1. 安装插件,在博客`根目录`下打开终端，运行以下指令：
   ```bash
-  npm install hexo-butterfly-swiper --save
+  npm install hexo-shoka-swiper --save
   ```
 
 2. 添加配置信息，以下为写法示例
-  在站点配置文件`_config.yml`或者主题配置文件`_config.butterfly.yml`中添加
+  在站点配置文件`_config.yml`或者主题配置文件`_config.shoka.yml`中添加
 
   ```yaml
-    # hexo-butterfly-swiper
-    # see https://akilar.top/posts/8e1264d1/
+    # hexo-shoka-swiper
+    # 首页轮播图
     swiper:
       enable: true # 开关
-      priority: 5 #过滤器优先权
+      priority: 5 # 过滤器优先权
       enable_page: / # 应用页面
-      exclude: #屏蔽页面
+      exclude: # 屏蔽页面
         # - /posts/
         # - /about/
-      timemode: date #date/updated
+      timemode: date # date/updated
       layout: # 挂载容器类型
-        type: id
-        name: recent-posts
+        type: class
+        name: 'index wrap'
         index: 0
-      error_img: /img/default.png #封面图片加载失败的默认封面
+      error_img: /images/loading.gif # 封面图片加载失败的默认封面
       insertposition: afterbegin
       default_descr: 再怎么看我也不知道怎么描述它的啦！
-      swiper_css: https://unpkg.zhimg.com/hexo-butterfly-swiper/lib/swiper.min.css #swiper css依赖
-      swiper_js: https://unpkg.zhimg.com/hexo-butterfly-swiper/lib/swiper.min.js #swiper js依赖
-      custom_css: https://unpkg.zhimg.com/hexo-butterfly-swiper/lib/swiperstyle.css # 适配主题样式补丁
-      custom_js: https://unpkg.zhimg.com/hexo-butterfly-swiper/lib/swiper_init.js # swiper初始化方法
+      swiper_css: https://cdn.jsdelivr.net/npm/hexo-shoka-swiper/lib/swiper.min.css # swiper css 依赖
+      swiper_js: https://cdn.jsdelivr.net/npm/hexo-shoka-swiper/lib/swiper.min.js # swiper js 依赖
+      custom_css: https://cdn.jsdelivr.net/npm/hexo-shoka-swiper/lib/swiperstyle.css # 适配主题样式补丁
+      custom_js: https://cdn.jsdelivr.net/npm/hexo-shoka-swiper/lib/swiper_init.js # swiper 初始化方法
   ```
 3. 参数释义
 
@@ -64,7 +64,7 @@
   updated: 更新日期
   cover: 文章封面
   description: 文章描述
-  swiper_index: 1 #置顶轮播图顺序，需填非负整数，数字越大越靠前
+  swiper_index: 1 # 置顶轮播图顺序，需填非负整数，数字越大越靠前
   ---
   ```
 

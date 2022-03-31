@@ -1,10 +1,11 @@
 {
   "name": "hexo-shoka-swiper",
-  "version": "1.0.17",
+  "version": "0.0.1",
   "description": "A Slideshow  plugin for theme-shoka based on swiper",
   "main": "index.js",
   "scripts": {
-    "eslint": "eslint ."
+    "eslint": "eslint .",
+    "publish": "scripts/publish.sh"
   },
   "directories": {
     "lib": "./lib"
@@ -27,11 +28,18 @@
     "llxlr"
   ],
   "license": "Apache-2.0",
-  "dependencies": {
-    "pug": "^3.0.0"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/llxlr/hexo-shoka-swiper.git"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "hexo": {
+    "version": ">=5"
+  },
+  "dependencies": {
+    "nunjucks": "^3.x",
+    "nunjucks-date": "^1.5.0"
   }
 }

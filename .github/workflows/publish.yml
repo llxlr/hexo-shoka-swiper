@@ -1,0 +1,35 @@
+name: Node.js Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # 设置 .npmrc 文件以发布到 npm
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm install
+      # 发布到 npm
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # 设置 .npmrc 文件以发布到 GitHub 包
+      - uses: actions/setup-node@v1
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+          # 默认为拥有工作流程文件的用户或组织
+          scope: '@llxlr'
+
+      # 发布到 GitHub 包
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
