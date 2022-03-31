@@ -4,8 +4,7 @@
   "description": "A Slideshow  plugin for theme-shoka based on swiper",
   "main": "index.js",
   "scripts": {
-    "eslint": "eslint .",
-    "publish": "scripts/publish.sh"
+    "eslint": "eslint ."
   },
   "directories": {
     "lib": "./lib"
