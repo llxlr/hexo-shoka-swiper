@@ -53,9 +53,7 @@ hexo.extend.filter.register('after_generate', () => {
       custom_js: config.custom_js ? urlFor(config.custom_js) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper_init.js`,
     }
     // 渲染页面
-    const tmpl = path.join(__dirname, './lib/html.njk')
-    if (!fs.existsSync(tmpl)) return;
-    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(tmpl).toString(), data);
+    const temple_html_text = config.temple_html ? config.temple_html : nunjucks.render(path.join(__dirname, './lib/html.njk'), data);
 
     // cdn资源声明
     // 样式资源
