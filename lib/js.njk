@@ -1,0 +1,30 @@
+<script data-pjax>
+  function {{ name }}_injector_config() {
+    let parent_div_git = {{ layout }};
+    if (!parent_div_git) return;
+    let item_html = "{{ tmpl }}";
+    console.log("已挂载{{ name }}")
+    parent_div_git.insertAdjacentHTML("{{ position }}", item_html)
+  }
+  if (X instanceof Pjax) {
+    const pjax=X;
+  } else {
+    const pjax = new Pjax();
+  }
+  let elist = {{ exclude }};
+  let cpage = location.pathname;
+  let epage = '{{ page }}';
+  let flag = 0;
+
+  for (let i=0;i<elist.length;i++) {
+    if (cpage.includes(elist[i])) {
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)) {
+    {{ name }}_injector_config();
+  } else if (epage === cpage) {
+    {{ name }}_injector_config();
+  }
+</script>

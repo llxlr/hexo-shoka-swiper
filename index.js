@@ -5,16 +5,10 @@ const version = require('./package.json').version
 // 全局声明依赖
 const path = require('path')
 const nunjucks = require('nunjucks')
+const moment = require('moment');
 const fs = require('hexo-fs')
 const urlFor = require('hexo-util').url_for.bind(hexo)
 const util = require('hexo-util')
-
-const nunjucksDate = require('nunjucks-date');
-const moment = require('moment');
-// Nunjucks添加date过滤器
-let env = new nunjucks.Environment();
-nunjucksDate.setDefaultFormat('YYYY-MM-DD');
-nunjucksDate.install(env);
 
 hexo.extend.filter.register('after_generate', () => {
     // 获取所有文章
@@ -61,7 +55,7 @@ hexo.extend.filter.register('after_generate', () => {
     // 渲染页面
     const tmpl = path.join(__dirname, './lib/html.njk')
     if (!fs.existsSync(tmpl)) return;
-    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(tmpl).toString(), data).replace(/  |\r|\n/g, '');
+    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(tmpl).toString(), data);
 
     // cdn资源声明
     // 样式资源
@@ -70,7 +64,7 @@ hexo.extend.filter.register('after_generate', () => {
     const js_text = `<script defer src="${data.swiper_js}"></script><script defer data-pjax src="${data.custom_js}"></script>`;
 
     // 注入容器声明
-    let get_layout
+    let get_layout;
     if (data.layout_type === 'class') {// 若指定为class类型的容器
       // 则根据class类名及序列获取容器
       get_layout = `document.getElementsByClassName('${data.layout_name}')[${data.layout_index}]`;
@@ -82,36 +76,14 @@ hexo.extend.filter.register('after_generate', () => {
     }
 
     // 挂载容器脚本
-    var user_info_js = `<script data-pjax>
-    function ${name}_injector_config() {
-      var parent_div_git = ${get_layout};
-      if(!parent_div_git){return;};
-      var item_html = '${temple_html_text.replace(/  |\r|\n/g, '')}';
-      console.log('已挂载${name}')
-      parent_div_git.insertAdjacentHTML("${data.insertposition}", item_html)
-    }
-    if (X instanceof Pjax) {
-      const pjax=X;
-    } else {
-      const pjax = new Pjax();
-    }
-    let elist = '${data.exclude}'.split(',');
-    let cpage = location.pathname;
-    let epage = '${data.enable_page}';
-    let flag = 0;
-
-    for (var i=0;i<elist.length;i++) {
-      if (cpage.includes(elist[i])) {
-        flag++;
-      }
-    }
-
-    if ((epage ==='all')&&(flag == 0)) {
-      ${name}_injector_config();
-    } else if (epage === cpage) {
-      ${name}_injector_config();
-    }
-    </script>`
+    let user_info_js = nunjucks.render(path.join(__dirname, './lib/js.njk'), {
+      'name': name,
+      'layout': get_layout,
+      'tmpl': temple_html_text.replace(/  |\r|\n/g, ''),
+      'position': data.insertposition,
+      'exclude': data.exclude.toString().split(','),
+      'page': data.enable_page,
+    }).replace(/  |\r|\n/g, '');
     // 注入用户脚本
     // 此处利用挂载容器实现了二级注入
     hexo.extend.injector.register('body_end', user_info_js, "default");
