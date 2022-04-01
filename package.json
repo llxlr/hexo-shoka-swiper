@@ -7,9 +7,11 @@
     "eslint": "eslint ."
   },
   "directories": {
+    "images": "./images",
     "lib": "./lib"
   },
   "files": [
+    "images/",
     "lib/",
     "index.js"
   ],
@@ -36,9 +38,5 @@
   },
   "hexo": {
     "version": ">=5"
-  },
-  "dependencies": {
-    "nunjucks": "^3.x",
-    "nunjucks-date": "^1.5.0"
   }
 }

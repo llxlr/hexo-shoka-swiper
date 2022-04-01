@@ -3,14 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const nunjucks = require('nunjucks')
-const nunjucksDate = require('nunjucks-date');
 const moment = require('moment');
-
-let env = new nunjucks.Environment();
-nunjucksDate.setDefaultFormat('YYYY-MM-DD');
-nunjucksDate.install(env);
-// env.addFilter("date", nunjucksDate);
-// console.log(env.filters);
 
 let posts_list = [
   {
