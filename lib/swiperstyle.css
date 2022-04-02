@@ -159,7 +159,7 @@ div#swiper_container {
     transition-delay:1.7s
 }
 .blog-slider__img {
-    width:200px;
+    width:43%;
     -webkit-flex-shrink:0;
     flex-shrink:0;
     height:200px;
