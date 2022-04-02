@@ -15,7 +15,6 @@
           {% endif %}
           <a class="blog-slider__title" href="{{ item.path | safe }}" rel="external nofollow noreferrer" alt="{{ item.title }}">{{ item.title }}</a>
           <div class="blog-slider__text">{{ item.description if item.description else default_descr }}</div>
-          <a class="blog-slider__button" href="{{ item.path | safe }}" rel="external nofollow noreferrer" alt="详情">详情</a>
         </div>
       </div>
       {% endfor %}
