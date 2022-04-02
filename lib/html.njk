@@ -9,9 +9,9 @@
         </a>
         <div class="blog-slider__content">
           {% if timemode === 'updated' %}
-          <span class="blog-slider__code">{{ date(item.updated, 'YYYY-MM-DD') }}</span>
+          <span class="blog-slider__code">{{ item.updated | date }}</span>
           {% else %}
-          <span class="blog-slider__code">{{ date(item.date, 'YYYY-MM-DD') }}</span>
+          <span class="blog-slider__code">{{ item.date | date }}</span>
           {% endif %}
           <a class="blog-slider__title" onclick="pjax.loadUrl('{{ item.path | urlencode }}');" href="javascript:void(0);" rel="external nofollow noreferrer" alt="{{ item.title }}">{{ item.title }}</a>
           <div class="blog-slider__text">{{ item.description if item.description else default_descr }}</div>

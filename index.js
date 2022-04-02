@@ -5,10 +5,16 @@ const version = require('./package.json').version
 // 全局声明依赖
 const path = require('path')
 const nunjucks = require('nunjucks')
-const moment = require('moment');
 const fs = require('hexo-fs')
 const urlFor = require('hexo-util').url_for.bind(hexo)
 const util = require('hexo-util')
+
+const nunjucksDate = require('nunjucks-date');
+const moment = require('moment');
+// Nunjucks添加date过滤器
+let env = new nunjucks.Environment();
+nunjucksDate.setDefaultFormat('YYYY-MM-DD');
+nunjucksDate.install(env);
 
 hexo.extend.filter.register('after_generate', () => {
     // 获取所有文章
@@ -53,7 +59,7 @@ hexo.extend.filter.register('after_generate', () => {
       custom_js: config.custom_js ? urlFor(config.custom_js) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper_init.js`,
     }
     // 渲染页面
-    const temple_html_text = config.temple_html ? config.temple_html : nunjucks.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
+    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
 
     // cdn资源声明
     // 样式资源
@@ -74,7 +80,7 @@ hexo.extend.filter.register('after_generate', () => {
     }
 
     // 挂载容器脚本
-    let user_info_js = nunjucks.renderString(fs.readFileSync(path.join(__dirname, './lib/js.njk')).toString(), {
+    let user_info_js = env.renderString(fs.readFileSync(path.join(__dirname, './lib/js.njk')).toString(), {
       'name': name,
       'layout': get_layout,
       'tmpl': temple_html_text.replace(/  |\r|\n/g, ''),

@@ -1,6 +1,6 @@
 {
   "name": "hexo-shoka-swiper",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A Slideshow  plugin for theme-shoka based on swiper",
   "main": "index.js",
   "scripts": {
@@ -38,5 +38,8 @@
   },
   "hexo": {
     "version": ">=5"
+  },
+  "dependencies": {
+    "nunjucks-date": "^1.5.0"
   }
 }
