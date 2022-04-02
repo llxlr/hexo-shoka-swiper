@@ -84,7 +84,7 @@ hexo.extend.filter.register('after_generate', () => {
   function ${name}_injector_config() {
     let parent_div_git = ${get_layout};
     if (!parent_div_git) return;
-    let item_html = "${temple_html_text.replace(/  |\r|\n/g, '')}";
+    let item_html = \`${temple_html_text.replace(/  |\r|\n/g, '')}\`;
     console.log("已挂载${name}")
     parent_div_git.insertAdjacentHTML("${data.insertposition}", item_html)
   };
@@ -93,7 +93,7 @@ hexo.extend.filter.register('after_generate', () => {
   } else {
     const pjax = new Pjax();
   };
-  let elist = ${data.exclude.toString().split(',')};
+  let elist = '${data.exclude}'.split(',');
   let cpage = location.pathname;
   let epage = '${data.enable_page}';
   let flag = 0;
