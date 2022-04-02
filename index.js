@@ -85,13 +85,8 @@ hexo.extend.filter.register('after_generate', () => {
     let parent_div_git = ${get_layout};
     if (!parent_div_git) return;
     let item_html = \`${temple_html_text.replace(/  |\r|\n/g, '')}\`;
-    console.log("已挂载${name}")
-    parent_div_git.insertAdjacentHTML("${data.insertposition}", item_html)
-  };
-  if (X instanceof Pjax) {
-    const pjax=X;
-  } else {
-    const pjax = new Pjax();
+    console.log("已挂载${name}");
+    parent_div_git.insertAdjacentHTML("${data.insertposition}", item_html);
   };
   let elist = '${data.exclude}'.split(',');
   let cpage = location.pathname;
