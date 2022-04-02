@@ -80,14 +80,36 @@ hexo.extend.filter.register('after_generate', () => {
     }
 
     // 挂载容器脚本
-    let user_info_js = env.renderString(fs.readFileSync(path.join(__dirname, './lib/js.njk')).toString(), {
-      'name': name,
-      'layout': get_layout,
-      'tmpl': temple_html_text.replace(/  |\r|\n/g, ''),
-      'position': data.insertposition,
-      'exclude': data.exclude.toString().split(','),
-      'page': data.enable_page,
-    }).replace(/  |\r|\n/g, '');
+    let user_info_js = `<script data-pjax>
+  function ${name}_injector_config() {
+    let parent_div_git = ${get_layout};
+    if (!parent_div_git) return;
+    let item_html = "${temple_html_text.replace(/  |\r|\n/g, '')}";
+    console.log("已挂载${name}")
+    parent_div_git.insertAdjacentHTML("${data.insertposition}", item_html)
+  };
+  if (X instanceof Pjax) {
+    const pjax=X;
+  } else {
+    const pjax = new Pjax();
+  };
+  let elist = ${data.exclude.toString().split(',')};
+  let cpage = location.pathname;
+  let epage = '${data.enable_page}';
+  let flag = 0;
+
+  for (let i=0;i<elist.length;i++) {
+    if (cpage.includes(elist[i])) {
+      flag++;
+    }
+  };
+
+  if ((epage ==='all')&&(flag == 0)) {
+    ${name}_injector_config();
+  } else if (epage === cpage) {
+    ${name}_injector_config();
+  };
+</script>`.replace(/  |\r|\n/g, '');
     // 注入用户脚本
     // 此处利用挂载容器实现了二级注入
     hexo.extend.injector.register('body_end', user_info_js, "default");
