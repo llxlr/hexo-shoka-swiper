@@ -53,7 +53,7 @@ hexo.extend.filter.register('after_generate', () => {
       custom_js: config.custom_js ? urlFor(config.custom_js) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper_init.js`,
     }
     // 渲染页面
-    const temple_html_text = config.temple_html ? config.temple_html : nunjucks.render(path.join(__dirname, './lib/html.njk'), data);
+    const temple_html_text = config.temple_html ? config.temple_html : nunjucks.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
 
     // cdn资源声明
     // 样式资源
@@ -74,7 +74,7 @@ hexo.extend.filter.register('after_generate', () => {
     }
 
     // 挂载容器脚本
-    let user_info_js = nunjucks.render(path.join(__dirname, './lib/js.njk'), {
+    let user_info_js = nunjucks.renderString(fs.readFileSync(path.join(__dirname, './lib/js.njk')).toString(), {
       'name': name,
       'layout': get_layout,
       'tmpl': temple_html_text.replace(/  |\r|\n/g, ''),
