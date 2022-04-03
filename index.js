@@ -100,9 +100,9 @@ hexo.extend.filter.register('after_generate', () => {
   };
 
   if ((epage ==='all')&&(flag == 0)) {
-    ${name}_injector_config();
+    document.addEventListener('onload', ${name}_injector_config());
   } else if (epage === cpage) {
-    ${name}_injector_config();
+    document.addEventListener('onload', ${name}_injector_config());
   };
 </script>`.replace(/  |\r|\n/g, '');
     // 注入用户脚本
