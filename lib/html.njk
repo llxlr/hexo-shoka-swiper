@@ -4,16 +4,12 @@
     <div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms;">
       {% for item in swiper_list %}
       <div class="blog-slider__item swiper-slide pjax" style="width: 750px; opacity: 1; transform: translate3d(0px, 0px, 0px); transition-duration: 0ms;">
-        <a class="blog-slider__img" href="{{ item.path | safe }}" rel="external nofollow noreferrer" alt="{{ item.title }}">
+        <a class="blog-slider__img" href="{% if item.link %}{{ item.link | safe }}{% else %}{{ item.path | safe }}{% endif %}" rel="external nofollow noreferrer" alt="{{ item.title }}">
           <img width="48" height="48" data-src="{{ item.cover | safe }}" alt="" onerror="this.src={{ error_img | safe }}; this.onerror = null;"/>
-        </a>
+        </a>        
         <div class="blog-slider__content">
-          {% if timemode === 'updated' %}
-          <span class="blog-slider__code">{{ item.updated | date }}</span>
-          {% else %}
-          <span class="blog-slider__code">{{ item.date | date }}</span>
-          {% endif %}
-          <a class="blog-slider__title" href="{{ item.path | safe }}" rel="external nofollow noreferrer" alt="{{ item.title }}">{{ item.title }}</a>
+          <span class="blog-slider__code">{% if timemode === 'updated' %}{{ item.updated | date }}{% else %}{{ item.date | date }}{% endif %}</span>
+          <a class="blog-slider__title" href="{% if item.link %}{{ item.link | safe }}{% else %}{{ item.path | safe }}{% endif %}" rel="external nofollow noreferrer" alt="{{ item.title }}">{{ item.title }}</a>
           <div class="blog-slider__text">{{ item.description if item.description else default_descr }}</div>
         </div>
       </div>
