@@ -48,22 +48,22 @@ hexo.extend.filter.register('after_generate', () => {
       layout_type: config.layout.type,
       layout_name: config.layout.name,
       layout_index: config.layout.index ? config.layout.index : 0,
-      error_img: config.error_img ? urlFor(config.error_img) : `https://fastly.jsdelivr.net/npm/hexo-shoka-swiper@${version}/images/loading.gif`,
+      error_img: config.error_img ? urlFor(config.error_img) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/images/loading.gif`,
       insertposition: config.insertposition ? config.insertposition : "afterbegin",
       swiper_title: config.swiper_title ? config.swiper_title : "推广链接",
       swiper_list: swiper_list,
       default_descr: config.default_descr ? config.default_descr : "再怎么看我也不知道怎么描述它的啦！",
       swiper_css: config.swiper_css ? urlFor(config.swiper_css) : `https://fastly.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper.min.css`,
-      swiper_js: config.swiper_js ? urlFor(config.swiper_js) : `https://fastly.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper.min.js`,
-      custom_css: config.custom_css ? urlFor(config.custom_css) : `https://fastly.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiperstyle.css`,
-      custom_js: config.custom_js ? urlFor(config.custom_js) : `https://fastly.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper_init.js`,
+      swiper_js: config.swiper_js ? urlFor(config.swiper_js) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper.min.js`,
+      custom_css: config.custom_css ? urlFor(config.custom_css) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiperstyle.css`,
+      custom_js: config.custom_js ? urlFor(config.custom_js) : `https://cdn.jsdelivr.net/npm/hexo-shoka-swiper@${version}/lib/swiper_init.js`,
     }
     // 渲染页面
     const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
 
     // cdn资源声明
     // 样式资源
-    const css_text = `<link rel="stylesheet" href="${data.swiper_css}" media="print" onload="this.media='all'"><link rel="stylesheet" href="${data.custom_css}" media="print" onload="this.media='all'">`;
+    const css_text = `<link rel="stylesheet" href="${data.swiper_css}"><link rel="stylesheet" href="${data.custom_css}">`;
     // 脚本资源
     const js_text = `<script defer src="${data.swiper_js}"></script><script defer data-pjax src="${data.custom_js}"></script>`;
 
