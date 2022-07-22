@@ -101,8 +101,10 @@ hexo.extend.filter.register('after_generate', () => {
 
   if ((epage ==='all')&&(flag == 0)) {
     document.addEventListener('onload', ${name}_injector_config());
+    document.addEventListener('popstate', ${name}_injector_config());
   } else if (epage === cpage) {
     document.addEventListener('onload', ${name}_injector_config());
+    document.addEventListener('popstate', ${name}_injector_config());
   };
 </script>`.replace(/  |\r|\n/g, '');
     // 注入用户脚本
