@@ -60,7 +60,7 @@ hexo.extend.filter.register('after_generate', () => {
       custom_js: config.custom_js ? urlFor(config.custom_js) : cdn + '/lib/swiper_init.js',
     }
     // 渲染页面
-    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
+    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/slider.njk')).toString(), data);
 
     // cdn资源声明
     // 样式资源
