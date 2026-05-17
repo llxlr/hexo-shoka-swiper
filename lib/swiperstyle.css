@@ -3,6 +3,16 @@
     -moz-box-sizing:border-box;
     box-sizing:border-box;
 }
+[data-theme=dark] {
+    --btn-hover-color: #787878;
+    --btn-color: rgba(255,255,255,0.7);
+    --btn-bg: #1f1f1f;
+}
+:root {
+    --btn-hover-color: #ff7242;
+    --btn-color: #fff;
+    --btn-bg: rgba(31, 105, 179, 0.852);
+}
 div#swiper_container {
     background:rgba(255, 255, 255, 0);
 }
@@ -11,7 +21,7 @@ div#swiper_container {
     position:relative;
     border-radius:12px 8px 8px 12px;
     margin:auto;
-    background:var(--global-bg);
+    background:var(--box-bg-shadow);
     padding:10px;
     -webkit-transition:all .3s;
     -moz-transition:all .3s;
@@ -213,7 +223,7 @@ div#swiper_container {
     transition:all .4s;
 }
 .blog-slider__code {
-    color:var(--font-color);
+    color:var(--text-color);
     margin-bottom:0;
     display:block;
     font-weight:500;
@@ -221,7 +231,7 @@ div#swiper_container {
 .blog-slider__title {
     font-size:18px;
     font-weight:700;
-    color:var(--font-color);
+    color:var(--text-color);
     margin-bottom:15px;
     -webkit-line-clamp:1;
     display:-webkit-box;
@@ -229,7 +239,7 @@ div#swiper_container {
     -webkit-box-orient:vertical;
 }
 .blog-slider__text {
-    color:var(--font-color);
+    color:var(--text-color);
     -webkit-line-clamp:1;
     display:-webkit-box;
     overflow:hidden;
@@ -248,10 +258,10 @@ div#swiper_container {
     display:-ms-inline-flexbox;
     display:inline-box;
     display:inline-flex;
-    background-color:var(--btn-bg);
+    background-color:var(--primary-color);
     padding:4px 14px;
     border-radius:8px;
-    color:var(--btn-color);
+    color:var(--header-text-color);
     text-decoration:none;
     font-weight:500;
     -webkit-box-pack:center;
@@ -265,8 +275,8 @@ div#swiper_container {
     display:none;
 }
 .blog-slider__button:hover {
-    background-color:var(--btn-hover-color);
-    color:var(--btn-color);
+    background-color:var(--color-orange);
+    color:var(--header-text-color);
 }
 .blog-slider .swiper-container-horizontal>.swiper-pagination-bullets, .blog-slider .swiper-pagination-custom, .blog-slider .swiper-pagination-fraction {
     bottom:10px;
@@ -308,7 +318,7 @@ div#swiper_container {
     opacity:1;
     -ms-filter:none;
     filter:none;
-    background:var(--btn-bg);
+    background:var(--primary-color);
     height:30px;
 }
 @media screen and (max-width:600px) {

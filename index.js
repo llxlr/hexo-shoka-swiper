@@ -60,13 +60,13 @@ hexo.extend.filter.register('after_generate', () => {
       custom_js: config.custom_js ? urlFor(config.custom_js) : cdn + '/lib/swiper_init.js',
     }
     // 渲染页面
-    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/slider.njk')).toString(), data);
+    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
 
     // cdn资源声明
     // 样式资源
     const css_text = `<link rel="stylesheet" href="${data.swiper_css}"><link rel="stylesheet" href="${data.custom_css}">`;
-    // 脚本资源
-    const js_text = `<script defer src="${data.swiper_js}"></script><script defer data-pjax src="${data.custom_js}"></script>`;
+    // 脚本资源 — swiper_init.js 不设 data-pjax，Pjax 下由挂载脚本接管
+    const js_text = `<script defer src="${data.swiper_js}"></script><script defer src="${data.custom_js}"></script>`;
 
     // 注入容器声明
     let get_layout;
@@ -80,35 +80,62 @@ hexo.extend.filter.register('after_generate', () => {
       get_layout = `document.getElementById('${data.layout_name}')`;
     }
 
-    // 挂载容器脚本
+    // 挂载容器脚本（data-pjax 确保 Pjax 导航时重执行，内嵌 Swiper 生命周期管理）
     let user_info_js = `<script data-pjax>
-  function ${name}_injector_config() {
-    let parent_div_git = ${get_layout};
-    if (!parent_div_git) return;
-    let item_html = \`${temple_html_text.replace(/  |\r|\n/g, '')}\`;
-    console.log("已挂载${name}");
-    parent_div_git.insertAdjacentHTML("${data.insertposition}", item_html);
-  };
-  let elist = '${data.exclude}'.split(',');
-  let cpage = location.pathname;
-  let epage = '${data.enable_page}';
-  let flag = 0;
+(function() {
+  var epage = '${data.enable_page}';
+  var cpage = location.pathname;
+  var exclude = '${data.exclude}'.split(',');
+  if (exclude.some(function(e) { return cpage.indexOf(e) !== -1; })) return;
+  if (epage !== 'all' && epage !== cpage) return;
 
-  for (let i=0;i<elist.length;i++) {
-    if (cpage.includes(elist[i])) {
-      flag++;
+  var parent = ${get_layout};
+  if (!parent) return;
+  if (parent.querySelector('.blog-slider')) return;
+  console.log("已挂载${name}");
+  parent.insertAdjacentHTML("${data.insertposition}", \`${temple_html_text.replace(/  |\r|\n/g, '')}\`);
+
+  // Pjax 兼容：挂载脚本统一接管 Swiper 生命周期。
+  // 首次加载时 window.Swiper 尚未定义（swiper.min.js 为 defer），跳过；
+  // Pjax 导航时 window.Swiper 已可用，在此处销毁旧实例并重建。
+  if (window.Swiper) {
+    if (window.swiper && window.swiper.destroy) {
+      window.swiper.destroy(true, true);
+      window.swiper = null;
     }
-  };
-
-  if ((epage ==='all')&&(flag == 0)) {
-    document.addEventListener('onload', ${name}_injector_config());
-  } else if (epage === cpage) {
-    document.addEventListener('onload', ${name}_injector_config());
-  };
-</script>`.replace(/  |\r|\n/g, '');
+    var el = document.querySelector('.blog-slider');
+    if (el) {
+      window.swiper = new Swiper('.blog-slider', {
+        passiveListeners: true,
+        spaceBetween: 30,
+        effect: 'fade',
+        loop: true,
+        autoplay: {
+          disableOnInteraction: true,
+          delay: 3000
+        },
+        mousewheel: true,
+        pagination: {
+          el: '.blog-slider__pagination',
+          clickable: true,
+        }
+      });
+      var container = document.getElementById('swiper_container');
+      if (container) {
+        container.onmouseenter = function() {
+          window.swiper.autoplay.stop();
+        };
+        container.onmouseleave = function() {
+          window.swiper.autoplay.start();
+        };
+      }
+    }
+  }
+})();
+</script>`;
     // 注入用户脚本
     // 此处利用挂载容器实现了二级注入
-    hexo.extend.injector.register('body_end', user_info_js, "default");
+    hexo.extend.injector.register('body_end', user_info_js.replace(/  |\r|\n/g, ''), "default");
     // 注入样式资源
     hexo.extend.injector.register('body_end', js_text, "default");
     // 注入脚本资源
