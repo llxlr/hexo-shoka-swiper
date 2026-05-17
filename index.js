@@ -60,7 +60,7 @@ hexo.extend.filter.register('after_generate', () => {
       custom_js: config.custom_js ? urlFor(config.custom_js) : cdn + '/lib/swiper_init.js',
     }
     // 渲染页面
-    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/html.njk')).toString(), data);
+    const temple_html_text = config.temple_html ? config.temple_html : env.renderString(fs.readFileSync(path.join(__dirname, './lib/slider.njk')).toString(), data);
 
     // cdn资源声明
     // 样式资源
@@ -93,7 +93,7 @@ hexo.extend.filter.register('after_generate', () => {
   if (!parent) return;
   if (parent.querySelector('.blog-slider')) return;
   console.log("已挂载${name}");
-  parent.insertAdjacentHTML("${data.insertposition}", \`${temple_html_text.replace(/  |\r|\n/g, '')}\`);
+  parent.insertAdjacentHTML("${data.insertposition}", "${temple_html_text.replace(/  |\r|\n/g, '')}");
 
   // Pjax 兼容：挂载脚本统一接管 Swiper 生命周期。
   // 首次加载时 window.Swiper 尚未定义（swiper.min.js 为 defer），跳过；
