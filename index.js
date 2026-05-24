@@ -66,7 +66,7 @@ hexo.extend.filter.register('after_generate', () => {
     // 样式资源
     const css_text = `<link rel="stylesheet" href="${data.swiper_css}"><link rel="stylesheet" href="${data.custom_css}">`;
     // 脚本资源 — swiper_init.js 不设 data-pjax，Pjax 下由挂载脚本接管
-    const js_text = `<script defer src="${data.swiper_js}"></script><script defer src="${data.custom_js}"></script>`;
+    const js_text = `<script src="${data.swiper_js}"></script><script src="${data.custom_js}"></script>`;
 
     // 注入容器声明
     let get_layout;
@@ -93,11 +93,9 @@ hexo.extend.filter.register('after_generate', () => {
   if (!parent) return;
   if (parent.querySelector('.blog-slider')) return;
   console.log("已挂载${name}");
-  parent.insertAdjacentHTML("${data.insertposition}", "${temple_html_text.replace(/  |\r|\n/g, '')}");
+  parent.insertAdjacentHTML("${data.insertposition}", '${temple_html_text.replace(/  |\r|\n/g, "")}');
 
-  // Pjax 兼容：挂载脚本统一接管 Swiper 生命周期。
-  // 首次加载时 window.Swiper 尚未定义（swiper.min.js 为 defer），跳过；
-  // Pjax 导航时 window.Swiper 已可用，在此处销毁旧实例并重建。
+  /* Pjax 兼容：挂载脚本统一接管 Swiper 生命周期。首次加载时 window.Swiper 尚未定义（swiper.min.js 为 defer），跳过；Pjax 导航时 window.Swiper 已可用，在此处销毁旧实例并重建。 */
   if (window.Swiper) {
     if (window.swiper && window.swiper.destroy) {
       window.swiper.destroy(true, true);
