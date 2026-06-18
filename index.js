@@ -21,11 +21,13 @@ hexo.extend.filter.register('after_generate', () => {
     // 获取所有文章
     let posts_list = hexo.locals.get('posts').data;
     let swiper_list = [];
+    const image_server = hexo.config.image_server || hexo.theme.config.image_server || '';
     // 若文章的front_matter内设置了index和描述，则将其放到swiper_list内
     for (let item of posts_list) {
       if (item.swiper_index) {
         item.date = moment(item.date);
         item.updated = moment(item.updated);
+        item.cover = item.cover ? urlFor(item.cover) : image_server + '?' + Math.floor(Math.random() * 999999) || cdn + '/images/loading.gif';
         swiper_list.push(item);
       }
     }
