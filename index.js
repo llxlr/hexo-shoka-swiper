@@ -67,7 +67,7 @@ hexo.extend.filter.register('after_generate', () => {
     // cdn资源声明
     // 样式资源
     const css_text = `<link rel="stylesheet" href="${data.swiper_css}"><link rel="stylesheet" href="${data.custom_css}">`;
-    // 脚本资源 — swiper_init.js 不设 data-pjax，Pjax 下由挂载脚本接管
+    // 脚本资源 — swiper_init.js 通过 PJAX 事件统一接管所有 PJAX 流程
     const js_text = `<script src="${data.swiper_js}"></script><script src="${data.custom_js}"></script>`;
 
     // 注入容器声明
@@ -82,55 +82,30 @@ hexo.extend.filter.register('after_generate', () => {
       get_layout = `document.getElementById('${data.layout_name}')`;
     }
 
-    // 挂载容器脚本（data-pjax 确保 Pjax 导航时重执行，内嵌 Swiper 生命周期管理）
-    let user_info_js = `<script data-pjax>
+    // 挂载脚本：仅负责首次加载时注入 HTML + 暴露配置到 window.__SWIPER_CONFIG__
+    // PJAX 下的 HTML 注入 + Swiper 生命周期统一由 swiper_init.js 通过事件驱动。
+    let user_info_js = `<script>
 (function() {
-  var epage = '${data.enable_page}';
-  var cpage = location.pathname;
-  var exclude = '${data.exclude}'.split(',');
-  if (exclude.some(function(e) { return cpage.indexOf(e) !== -1; })) return;
-  if (epage !== 'all' && epage !== cpage) return;
+  /* 暴露配置到全局，供 swiper_init.js 的 PJAX 事件回调使用 */
+  window.__SWIPER_CONFIG__ = {
+    epage: '${data.enable_page}',
+    exclude: '${data.exclude}'.split(','),
+    get_layout: function() { return ${get_layout}; },
+    insertposition: '${data.insertposition}',
+    html: '${temple_html_text.replace(/  |\r|\n/g, "")}',
+    name: '${name}'
+  };
 
-  var parent = ${get_layout};
+  /* 首次加载：路径匹配 → 注入 HTML（Swiper 初始化由 swiper_init.js 负责） */
+  var cfg = window.__SWIPER_CONFIG__;
+  var cpage = location.pathname;
+  if (cfg.exclude.some(function(e) { return cpage.indexOf(e) !== -1; })) return;
+  if (cfg.epage !== 'all' && cfg.epage !== cpage) return;
+  var parent = cfg.get_layout();
   if (!parent) return;
   if (parent.querySelector('.blog-slider')) return;
-  console.log("已挂载${name}");
-  parent.insertAdjacentHTML("${data.insertposition}", '${temple_html_text.replace(/  |\r|\n/g, "")}');
-
-  /* Pjax 兼容：挂载脚本统一接管 Swiper 生命周期。首次加载时 window.Swiper 尚未定义（swiper.min.js 为 defer），跳过；Pjax 导航时 window.Swiper 已可用，在此处销毁旧实例并重建。 */
-  if (window.Swiper) {
-    if (window.swiper && window.swiper.destroy) {
-      window.swiper.destroy(true, true);
-      window.swiper = null;
-    }
-    var el = document.querySelector('.blog-slider');
-    if (el) {
-      window.swiper = new Swiper('.blog-slider', {
-        passiveListeners: true,
-        spaceBetween: 30,
-        effect: 'fade',
-        loop: true,
-        autoplay: {
-          disableOnInteraction: true,
-          delay: 3000
-        },
-        mousewheel: true,
-        pagination: {
-          el: '.blog-slider__pagination',
-          clickable: true,
-        }
-      });
-      var container = document.getElementById('swiper_container');
-      if (container) {
-        container.onmouseenter = function() {
-          window.swiper.autoplay.stop();
-        };
-        container.onmouseleave = function() {
-          window.swiper.autoplay.start();
-        };
-      }
-    }
-  }
+  console.log('已挂载' + cfg.name);
+  parent.insertAdjacentHTML(cfg.insertposition, cfg.html);
 })();
 </script>`;
     // 注入用户脚本
