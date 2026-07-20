@@ -3,16 +3,33 @@
   <div class="blog-slider swiper-container-fade swiper-container-horizontal" id="swiper_container">
     <div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms;">
       {% for item in swiper_list %}
-      <div class="blog-slider__item swiper-slide pjax" style="width: 750px; opacity: 1; transform: translate3d(0px, 0px, 0px); transition-duration: 0ms;">
-        <a class="blog-slider__img" onclick="pjax.loadUrl(`{% if item.link %}{{ item.link | safe }}{% else %}{{ item.path | safe }}{% endif %}`);" href="javascript:void(0);" rel="external nofollow noreferrer" alt="{{ item.title }}">
-          <img width="48" height="48" data-src="{{ item.cover | safe }}" alt="" onerror="this.src={{ error_img | safe }}; this.onerror = null;"/>
-        </a>        
+      {% if item.swiper_type === 'video' and (item.swiper_video or item.swiper_video_embed) %}
+      <div class="blog-slider__item blog-slider__item--video swiper-slide pjax" style="width: 750px; opacity: 1; transform: translate3d(0px, 0px, 0px); transition-duration: 0ms;">
+        <div class="blog-slider__video">
+          {% if item.swiper_video_embed %}
+          <div class="blog-slider__video-embed">{{ item.swiper_video_embed | safe }}</div>
+          {% elif item.swiper_video %}
+          <video src="{{ item.swiper_video | safe }}"{% if item.swiper_video_poster %} poster="{{ item.swiper_video_poster | safe }}"{% endif %} muted loop playsinline controls></video>
+          {% endif %}
+        </div>
         <div class="blog-slider__content">
           <span class="blog-slider__code">{% if timemode === 'updated' %}{{ item.updated | date }}{% else %}{{ item.date | date }}{% endif %}</span>
           <a class="blog-slider__title" onclick="pjax.loadUrl(`{% if item.link %}{{ item.link | safe }}{% else %}{{ item.path | safe }}{% endif %}`);" href="javascript:void(0);" rel="external nofollow noreferrer" alt="{{ item.title }}">{{ item.title }}</a>
           <div class="blog-slider__text">{{ item.description if item.description else default_descr }}</div>
         </div>
       </div>
+      {% else %}
+      <div class="blog-slider__item swiper-slide pjax" style="width: 750px; opacity: 1; transform: translate3d(0px, 0px, 0px); transition-duration: 0ms;">
+        <a class="blog-slider__img" onclick="pjax.loadUrl(`{% if item.link %}{{ item.link | safe }}{% else %}{{ item.path | safe }}{% endif %}`);" href="javascript:void(0);" rel="external nofollow noreferrer" alt="{{ item.title }}">
+          <img width="48" height="48" data-src="{{ item.cover | safe }}" alt="" onerror="this.src={{ error_img | safe }}; this.onerror = null;"/>
+        </a>
+        <div class="blog-slider__content">
+          <span class="blog-slider__code">{% if timemode === 'updated' %}{{ item.updated | date }}{% else %}{{ item.date | date }}{% endif %}</span>
+          <a class="blog-slider__title" onclick="pjax.loadUrl(`{% if item.link %}{{ item.link | safe }}{% else %}{{ item.path | safe }}{% endif %}`);" href="javascript:void(0);" rel="external nofollow noreferrer" alt="{{ item.title }}">{{ item.title }}</a>
+          <div class="blog-slider__text">{{ item.description if item.description else default_descr }}</div>
+        </div>
+      </div>
+      {% endif %}
       {% endfor %}
     </div>
     <div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div>

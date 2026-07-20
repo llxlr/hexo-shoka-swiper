@@ -28,6 +28,8 @@ hexo.extend.filter.register('after_generate', () => {
         item.date = moment(item.date);
         item.updated = moment(item.updated);
         item.cover = item.cover ? urlFor(item.cover) : image_server + '?' + Math.floor(Math.random() * 999999) || cdn + '/images/loading.gif';
+        // 视频卡片：解析封面图路径
+        item.swiper_video_poster = item.swiper_video_poster ? urlFor(item.swiper_video_poster) : '';
         swiper_list.push(item);
       }
     }
@@ -123,3 +125,119 @@ hexo.extend.filter.register('after_generate', () => {
     return priority
   })
 )
+
+// ==================== 文章内 Swiper Tag 插件 ====================
+let articleSwiperAssetsInjected = false;
+let articleSwiperCount = 0;
+const swiperNjkSrc = fs.readFileSync(path.join(__dirname, './lib/swiper.njk')).toString();
+
+function injectArticleSwiperAssets() {
+  if (articleSwiperAssetsInjected) return;
+  articleSwiperAssetsInjected = true;
+  hexo.extend.injector.register('head_end',
+    `<link rel="stylesheet" href="${cdn}/lib/swiper.min.css">`, 'article_swiper');
+  hexo.extend.injector.register('body_end',
+    `<script src="${cdn}/lib/swiper.min.js"></script>`, 'article_swiper');
+}
+
+/**
+ * 解析 tag 参数。支持两种格式：
+ *   key:value       → { key: 'value' }
+ *   key: value      → { key: 'value' }（值在下一个 token）
+ * 仅取第一个冒号分隔，后续冒号归值（如 ratio:16:9 → { ratio: '16:9' }）
+ */
+function parseTagArgs(args) {
+  const result = {};
+  let pendingKey = null;
+  args.forEach(arg => {
+    let val;
+    if (pendingKey) {
+      val = arg.replace(/,$/, '');
+      result[pendingKey] = val;
+      pendingKey = null;
+      return;
+    }
+    const idx = arg.indexOf(':');
+    if (idx === -1) return;
+    const key = arg.substring(0, idx);
+    val = arg.substring(idx + 1).replace(/,$/, '');
+    if (val.length > 0) {
+      result[key] = val;
+    } else {
+      pendingKey = key;
+    }
+  });
+  return result;
+}
+
+/** 生成唯一 swiper ID */
+function uid() { return 'as_' + (++articleSwiperCount) + '_' + Math.random().toString(36).slice(2, 8); }
+
+/**
+ * {% slide %} — 轮播子项（内层标签，先于 swiper 执行）
+ * 参数：cover, link, video, poster, embed, type（自动检测可不填）
+ * 内容：描述文本（支持 Markdown）
+ */
+hexo.extend.tag.register('slide', function(args, content) {
+  const opts = parseTagArgs(args);
+  // 自动检测类型
+  if (!opts.type) {
+    opts.type = (opts.video || opts.embed) ? 'video' : 'image';
+  }
+  // 渲染描述（Markdown）
+  let caption = '';
+  if (content && content.trim()) {
+    caption = hexo.render.renderSync({ text: content.trim(), engine: 'markdown' }).trim();
+  }
+
+  const linkUrl = opts.link || '';
+  const linkOpen = linkUrl ? `<a class="as-slide__link" href="${linkUrl}" rel="external nofollow noreferrer">` : '';
+  const linkClose = linkUrl ? '</a>' : '';
+
+  if (opts.type === 'video') {
+    // 视频 slide：复用 .blog-slider__video 结构 + 描述
+    let mediaHtml;
+    if (opts.embed) {
+      mediaHtml = `<div class="blog-slider__video-embed">${opts.embed}</div>`;
+    } else if (opts.video) {
+      const poster = opts.poster ? ` poster="${opts.poster}"` : '';
+      mediaHtml = `<video src="${opts.video}"${poster} muted loop playsinline controls></video>`;
+    } else {
+      mediaHtml = '';
+    }
+    return `<div class="swiper-slide as-slide blog-slider__item blog-slider__item--video">
+      <div class="as-slide__media blog-slider__video">${linkOpen}${mediaHtml}${linkClose}</div>
+      ${caption ? `<div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">${caption}</div></div>` : ''}
+    </div>`;
+  }
+
+  // 图片 slide：复用 .blog-slider__img 结构 + 描述
+  return `<div class="swiper-slide as-slide blog-slider__item">
+    <div class="as-slide__media blog-slider__img">${linkOpen}<img data-src="${opts.cover || cdn + '/images/loading.gif'}" alt="" loading="lazy"/>${linkClose}</div>
+    ${caption ? `<div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">${caption}</div></div>` : ''}
+  </div>`;
+}, { ends: true });
+
+/**
+ * {% swiper %} — 文章内轮播容器（外层标签）
+ * 参数：style（gallery/card，默认 gallery）、ratio（16:9/4:3/1:1，默认 16:9）
+ */
+hexo.extend.tag.register('swiper', function(args, content) {
+  injectArticleSwiperAssets();
+  const opts = parseTagArgs(args);
+  const style = opts.style || 'gallery';
+  const ratio = opts.ratio || '16:9';
+  const id = uid();
+  // 计算 aspect-ratio
+  const ratioMap = { '16:9': '56.25%', '4:3': '75%', '1:1': '100%' };
+  const paddingBottom = ratioMap[ratio] || '56.25%';
+
+  const data = {
+    swiperId: id,
+    style: style,
+    effect: style === 'card' ? 'fade' : 'slide',
+    paddingBottom: paddingBottom,
+    swiperItemData: content,
+  };
+  return env.renderString(swiperNjkSrc, data);
+}, { ends: true });

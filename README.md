@@ -68,5 +68,100 @@
   ---
   ```
 
+  如需使用**视频卡片**，增加以下 front_matter 配置：
+
+  ```markdown
+  ---
+  title: 文章标题
+  date: 创建日期
+  cover: 视频封面图（可选）
+  description: 文章描述
+  swiper_index: 1
+  swiper_type: video           # 卡片类型：video
+  swiper_video: https://...    # 自托管视频直链（mp4/webm），与 swiper_video_embed 二选一
+  swiper_video_poster: /images/poster.jpg  # 视频封面图（可选，仅自托管视频）
+  # swiper_video_embed: <iframe ...></iframe>  # 平台嵌入代码，与 swiper_video 二选一
+  ---
+  ```
+
+  **视频卡片参数说明：**
+
+  |参数|必选|释义|
+  |:--|:--|:--|
+  |swiper_type|【必选】|填 `video` 启用视频卡片 |
+  |swiper_video|【二选一】|自托管视频文件直链（mp4、webm 等），使用 `<video>` 标签播放 |
+  |swiper_video_embed|【二选一】|平台嵌入 iframe 代码，如 B站、YouTube 的分享嵌入 HTML |
+  |swiper_video_poster|【可选】|视频加载前显示的封面图，仅对 `swiper_video` 生效 |
+
+  **B站嵌入示例：**
+  ```markdown
+  swiper_type: video
+  swiper_video_embed: <iframe src="//player.bilibili.com/player.html?bvid=BV1xx411c7mD" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="100%"></iframe>
+  ```
+
+  **YouTube 嵌入示例：**
+  ```markdown
+  swiper_type: video
+  swiper_video_embed: <iframe src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen width="100%" height="100%"></iframe>
+  ```
+
+  不指定 `swiper_type` 或留空则默认使用图片卡片，不影响已有文章。
+
+5. 文章内轮播（Tag 插件）
+
+  在文章 Markdown 中使用 `{% swiper %}` 标签插入轮播。
+
+  **图库式（gallery）** — 适合图片集、教程截图、作品展示：
+
+  ```markdown
+  {% swiper style:gallery, ratio:16:9 %}
+    {% slide cover:/images/photo1.jpg %}
+      ### 图片标题
+      图片描述文字（支持 Markdown）
+    {% endslide %}
+    {% slide cover:/images/photo2.jpg %}
+    {% endslide %}
+    {% slide video:/videos/demo.mp4, poster:/images/cover.jpg %}
+      视频说明
+    {% endslide %}
+    {% slide embed:"<iframe src=\"//player.bilibili.com/player.html?bvid=xxx\" allowfullscreen></iframe>" %}
+      B站嵌入示例
+    {% endslide %}
+  {% endswiper %}
+  ```
+
+  **迷你卡片式（card）** — 适合文章内嵌推荐内容，fade 切换：
+
+  ```markdown
+  {% swiper style:card %}
+    {% slide cover:/images/post1.jpg, link:/posts/hello/ %}
+      推荐文章标题
+    {% endslide %}
+    {% slide cover:/images/post2.jpg %}
+      另一篇文章描述
+    {% endslide %}
+  {% endswiper %}
+  ```
+
+  **swiper 参数：**
+
+  |参数|默认值|释义|
+  |:--|:--|:--|
+  |style|gallery|布局风格：`gallery` 图库式 / `card` 迷你卡片式|
+  |ratio|16:9|gallery 模式下媒体宽高比：`16:9` / `4:3` / `1:1`|
+
+  **slide 参数：**
+
+  |参数|释义|
+  |:--|:--|
+  |cover|图片 URL|
+  |link|点击跳转链接|
+  |video|自托管视频直链（mp4/webm）|
+  |poster|视频封面图|
+  |embed|平台嵌入 iframe 代码|
+  |type|`image` / `video`（通常自动检测，可不填）|
+
+  slide 的内容会作为描述文本渲染（支持 Markdown）。即使首页 swiper 关闭，文章内 tag 也能独立工作，且适配 Shoka PJAX。
+
 # 截图
 ![](https://unpkg.zhimg.com/akilar-candyassets/image/f4783623.png)
