@@ -4,7 +4,8 @@
   "description": "A Slideshow and Cardshow plugin for theme-shoka based on swiper",
   "main": "index.js",
   "scripts": {
-    "eslint": "eslint ."
+    "lint": "oxlint",
+    "prepare": "husky"
   },
   "directories": {
     "images": "./images",
@@ -34,12 +35,16 @@
     "url": "https://github.com/llxlr/hexo-shoka-swiper.git"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=22"
   },
   "hexo": {
     "version": ">=5"
   },
   "dependencies": {
     "nunjucks-date": "^1.5.0"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "oxlint": "^1.74.0"
   }
 }

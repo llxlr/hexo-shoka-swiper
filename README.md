@@ -2,7 +2,7 @@
 
 给`hexo-theme-shoka`添加 [首页轮播图](https://akilar.top/posts/8e1264d1/)
 
-# 安装
+## 安装
 
 1. 安装插件,在博客`根目录`下打开终端，运行以下指令：
   ```bash
@@ -162,6 +162,3 @@
   |type|`image` / `video`（通常自动检测，可不填）|
 
   slide 的内容会作为描述文本渲染（支持 Markdown）。即使首页 swiper 关闭，文章内 tag 也能独立工作，且适配 Shoka PJAX。
-
-# 截图
-![](https://unpkg.zhimg.com/akilar-candyassets/image/f4783623.png)

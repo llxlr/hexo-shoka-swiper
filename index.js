@@ -8,7 +8,6 @@ const path = require('path')
 const nunjucks = require('nunjucks')
 const fs = require('hexo-fs')
 const urlFor = require('hexo-util').url_for.bind(hexo)
-const util = require('hexo-util')
 
 const nunjucksDate = require('nunjucks-date');
 const moment = require('moment');
