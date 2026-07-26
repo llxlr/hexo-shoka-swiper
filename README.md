@@ -149,6 +149,8 @@
   |:--|:--|:--|
   |style|gallery|布局风格：`gallery` 图库式 / `card` 迷你卡片式|
   |ratio|16:9|gallery 模式下媒体宽高比：`16:9` / `4:3` / `1:1`|
+  |autoplay|3000|自动播放间隔（毫秒），`false` 关闭自动播放|
+  |mousewheel|true|鼠标滚轮翻页开关，`false` 关闭|
 
   **slide 参数：**
 
@@ -162,3 +164,15 @@
   |type|`image` / `video`（通常自动检测，可不填）|
 
   slide 的内容会作为描述文本渲染（支持 Markdown）。即使首页 swiper 关闭，文章内 tag 也能独立工作，且适配 Shoka PJAX。
+
+  两种风格均默认开启**自动播放**（3s 间隔）、**鼠标滚轮翻页**和**循环轮播**（滚到最后自动回到第一张）。可通过参数关闭：
+
+  ```markdown
+  {% swiper style:gallery, autoplay:false, mousewheel:false %}
+  ```
+
+  自定义自动播放间隔（毫秒）：
+
+  ```markdown
+  {% swiper style:gallery, autoplay:5000 %}
+  ```

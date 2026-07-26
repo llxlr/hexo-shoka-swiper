@@ -212,7 +212,7 @@ hexo.extend.tag.register('slide', function(args, content) {
 
   // 图片 slide：复用 .blog-slider__img 结构 + 描述
   return `<div class="swiper-slide as-slide blog-slider__item">
-    <div class="as-slide__media blog-slider__img">${linkOpen}<img data-src="${opts.cover || cdn + '/images/loading.gif'}" alt="" loading="lazy"/>${linkClose}</div>
+    <div class="as-slide__media blog-slider__img">${linkOpen}<img src="${opts.cover || cdn + '/images/loading.gif'}" alt="" loading="lazy"/>${linkClose}</div>
     ${caption ? `<div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">${caption}</div></div>` : ''}
   </div>`;
 }, { ends: true });
@@ -236,6 +236,8 @@ hexo.extend.tag.register('swiper', function(args, content) {
     style: style,
     effect: style === 'card' ? 'fade' : 'slide',
     paddingBottom: paddingBottom,
+    autoplay: opts.autoplay !== undefined ? opts.autoplay : '3000',
+    mousewheel: opts.mousewheel !== 'false',
     swiperItemData: content,
   };
   return env.renderString(swiperNjkSrc, data);

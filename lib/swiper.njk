@@ -1,5 +1,5 @@
 <div class="article-swiper article-swiper--{{ style }}" id="{{ swiperId }}"
-     data-swiper-config='{"effect":"{{ effect }}","style":"{{ style }}"}'
+     data-swiper-config='{"effect":"{{ effect }}","style":"{{ style }}","autoplay":"{{ autoplay }}","mousewheel":{{ mousewheel }}}'
      {% if style === 'gallery' %}style="--as-ratio: {{ paddingBottom }}"{% endif %}>
   <div class="swiper-wrapper">
     {{ swiperItemData | safe }}
