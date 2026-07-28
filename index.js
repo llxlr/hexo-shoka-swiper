@@ -83,35 +83,44 @@ hexo.extend.filter.register('after_generate', () => {
       get_layout = `document.getElementById('${data.layout_name}')`;
     }
 
-    // 挂载脚本：仅负责首次加载时注入 HTML + 暴露配置到 window.__SWIPER_CONFIG__
+    // ── 生成为独立 js 文件（避免内联脚本影响 SEO）──
     // PJAX 下的 HTML 注入 + Swiper 生命周期统一由 swiper_init.js 通过事件驱动。
-    let user_info_js = `<script>
-(function() {
+    const swiper_html_escaped = temple_html_text.replace(/  |\r|\n/g, '');
+    const swiper_js_content = `
+(function () {
+  'use strict';
+
   /* 暴露配置到全局，供 swiper_init.js 的 PJAX 事件回调使用 */
   window.__SWIPER_CONFIG__ = {
     epage: '${data.enable_page}',
     exclude: '${data.exclude}'.split(','),
-    get_layout: function() { return ${get_layout}; },
+    get_layout: function () {
+      return ${get_layout};
+    },
     insertposition: '${data.insertposition}',
-    html: '${temple_html_text.replace(/  |\r|\n/g, "")}',
+    html: '${swiper_html_escaped}',
     name: '${name}'
   };
 
   /* 首次加载：路径匹配 → 注入 HTML（Swiper 初始化由 swiper_init.js 负责） */
   var cfg = window.__SWIPER_CONFIG__;
   var cpage = location.pathname;
-  if (cfg.exclude.some(function(e) { return cpage.indexOf(e) !== -1; })) return;
+
+  if (cfg.exclude.some(function (e) { return cpage.indexOf(e) !== -1; })) return;
   if (cfg.epage !== 'all' && cfg.epage !== cpage) return;
+
   var parent = cfg.get_layout();
   if (!parent) return;
   if (parent.querySelector('.blog-slider')) return;
-  console.log('已挂载' + cfg.name);
+
   parent.insertAdjacentHTML(cfg.insertposition, cfg.html);
 })();
-</script>`;
-    // 注入用户脚本
-    // 此处利用挂载容器实现了二级注入
-    hexo.extend.injector.register('body_end', user_info_js.replace(/  |\r|\n/g, ''), "default");
+`;
+
+    hexo.route.set('js/swiper.js', swiper_js_content);
+
+    // 注入外部脚本引用（替代原来的内联 user_info_js）
+    hexo.extend.injector.register('body_end', `<script src="${urlFor('/js/swiper.js')}"></script>`, "default");
     // 注入样式资源
     hexo.extend.injector.register('body_end', js_text, "default");
     // 注入脚本资源
