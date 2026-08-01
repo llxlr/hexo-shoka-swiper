@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Swiper v14 本地迁移自测</title>
+  <link rel="stylesheet" href="../lib/swiper.min.css">
+  <link rel="stylesheet" href="../lib/swiperstyle.css">
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; margin: 0; padding: 32px; background: #f6f7f9; }
+    .test-block { max-width: 960px; margin: 0 auto 48px; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .test-block h3 { margin: 0 0 16px; }
+    .blog-slider { height: 320px; }
+    .blog-slider__img img, .article-swiper img { width: 100%; height: 100%; object-fit: cover; }
+    #test-results { white-space: pre-wrap; background: #102027; color: #9ccc65; padding: 16px; border-radius: 6px; font: 13px/1.6 Consolas, monospace; }
+    #test-results .fail { color: #ff7043; }
+    #test-results .ok { color: #9ccc65; }
+  </style>
+</head>
+<body>
+
+  <!-- 模拟 theme-shoka 的主题布局容器 -->
+  <div id="layout"></div>
+
+  <div class="test-block">
+    <h3>测试结果</h3>
+    <pre id="test-results">running…</pre>
+  </div>
+
+  <script>
+    // ================= 模拟 index.js 生成的 js/swiper.js 首次注入 =================
+    (function () {
+      'use strict';
+      var sliderHtml =
+        '<h2 class="divider swiper">推广链接</h2>' +
+        '<div class="segments swiper">' +
+        '  <div class="blog-slider swiper swiper-fade swiper-horizontal" id="swiper_container">' +
+        '    <div class="blog-slider__wrp swiper-wrapper">' +
+        '      <div class="blog-slider__item swiper-slide pjax">' +
+        '        <a class="blog-slider__img" style="background:#4fc3f7" href="javascript:void(0);"><img width="48" height="48" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'750\' height=\'320\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%234fc3f7\'/%3E%3Ctext x=\'20\' y=\'60\' font-size=\'28\' fill=\'%23fff\'%3ESlide 1%3C/text%3E%3C/svg%3E" alt=""></a>' +
+        '        <div class="blog-slider__content"><span class="blog-slider__code">2026-01-01</span><a class="blog-slider__title" href="javascript:void(0);">文章一</a><div class="blog-slider__text">第一篇测试文章</div></div>' +
+        '      </div>' +
+        '      <div class="blog-slider__item swiper-slide pjax">' +
+        '        <a class="blog-slider__img" style="background:#66bb6a" href="javascript:void(0);"><img width="48" height="48" src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'750\' height=\'320\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%2366bb6a\'/%3E%3Ctext x=\'20\' y=\'60\' font-size=\'28\' fill=\'%23fff\'%3ESlide 2%3C/text%3E%3C/svg%3E" alt=""></a>' +
+        '        <div class="blog-slider__content"><span class="blog-slider__code">2026-02-01</span><a class="blog-slider__title" href="javascript:void(0);">文章二</a><div class="blog-slider__text">第二篇测试文章</div></div>' +
+        '      </div>' +
+        '      <div class="blog-slider__item blog-slider__item--video swiper-slide pjax">' +
+        '        <div class="blog-slider__video"><video muted loop playsinline controls></video></div>' +
+        '        <div class="blog-slider__content"><span class="blog-slider__code">2026-03-01</span><a class="blog-slider__title" href="javascript:void(0);">视频文章</a><div class="blog-slider__text">视频卡片</div></div>' +
+        '      </div>' +
+        '    </div>' +
+        '    <div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div>' +
+        '  </div>' +
+        '</div>';
+
+      window.__SWIPER_CONFIG__ = {
+        epage: 'all',
+        exclude: '',
+        get_layout: function () { return document.getElementById('layout'); },
+        insertposition: 'afterbegin',
+        html: sliderHtml,
+        name: 'shoka_swiper'
+      };
+
+      document.getElementById('layout').insertAdjacentHTML('afterbegin', sliderHtml);
+    })();
+  </script>
+
+  <!-- ================= 文章内 Swiper：图库模式（slide）+ 卡片模式（fade） ================= -->
+  <div class="test-block">
+    <h3>文章内图库轮播</h3>
+    <div class="article-swiper article-swiper--gallery swiper" id="as_1"
+         data-swiper-config='{"effect":"slide","style":"gallery","autoplay":"3000","mousewheel":true}'
+         style="--as-ratio: 56.25%">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide as-slide blog-slider__item">
+          <div class="as-slide__media blog-slider__img" style="background:#7e57c2"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%237e57c2'/%3E%3C/svg%3E" alt=""></div>
+          <div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">图片一</div></div>
+        </div>
+        <div class="swiper-slide as-slide blog-slider__item">
+          <div class="as-slide__media blog-slider__img" style="background:#26a69a"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%2326a69a'/%3E%3C/svg%3E" alt=""></div>
+          <div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">图片二</div></div>
+        </div>
+        <div class="swiper-slide as-slide blog-slider__item">
+          <div class="as-slide__media blog-slider__img" style="background:#ef5350"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%23ef5350'/%3E%3C/svg%3E" alt=""></div>
+          <div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">图片三</div></div>
+        </div>
+      </div>
+      <div class="swiper-button-prev as-nav"></div>
+      <div class="swiper-button-next as-nav"></div>
+      <div class="swiper-pagination as-dots"></div>
+    </div>
+  </div>
+
+  <div class="test-block">
+    <h3>文章内卡片轮播</h3>
+    <div class="article-swiper article-swiper--card swiper" id="as_2"
+         data-swiper-config='{"effect":"fade","style":"card","autoplay":"false","mousewheel":false}'>
+      <div class="swiper-wrapper">
+        <div class="swiper-slide as-slide blog-slider__item">
+          <div class="as-slide__media blog-slider__img" style="background:#ffa726"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%23ffa726'/%3E%3C/svg%3E" alt=""></div>
+        </div>
+        <div class="swiper-slide as-slide blog-slider__item">
+          <div class="as-slide__media blog-slider__img" style="background:#5c6bc0"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%235c6bc0'/%3E%3C/svg%3E" alt=""></div>
+        </div>
+        <div class="swiper-slide as-slide blog-slider__item">
+          <div class="as-slide__media blog-slider__img" style="background:#8d6e63"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='100%25' height='100%25' fill='%238d6e63'/%3E%3C/svg%3E" alt=""></div>
+        </div>
+      </div>
+      <div class="swiper-pagination as-dots as-dots--card"></div>
+    </div>
+  </div>
+
+  <script src="../lib/swiper.min.js"></script>
+  <script src="../lib/swiper_init.js"></script>
+
+  <script>
+    (function () {
+      'use strict';
+      var errors = [];
+      window.__errors = errors;
+      window.onerror = function (msg, src, line) { errors.push('onerror: ' + msg + ' @' + line); };
+      var origError = console.error;
+      console.error = function () {
+        errors.push('console.error: ' + Array.prototype.slice.call(arguments).join(' '));
+        origError.apply(console, arguments);
+      };
+
+      var results = [];
+      function check(name, cond, extra) {
+        results.push((cond ? 'PASS  ' : 'FAIL  ') + name + (extra !== undefined ? '  [' + extra + ']' : ''));
+      }
+      function render() {
+        var pre = document.getElementById('test-results');
+        pre.innerHTML = results.join('\n') + '\n---- errors ----\n' + (errors.length ? errors.join('\n') : '(none)');
+      }
+
+      function afterLoad(fn) { setTimeout(fn, 600); }
+
+      afterLoad(function () {
+        var hs = window.swiper;
+        check('全局 Swiper 构造可用', typeof window.Swiper === 'function');
+        check('首页 window.swiper 已初始化', !!hs && !hs.destroyed);
+        check('首页容器类名含 swiper/swiper-fade/swiper-horizontal',
+          document.querySelector('.blog-slider').classList.contains('swiper') &&
+          document.querySelector('.blog-slider').classList.contains('swiper-fade') &&
+          document.querySelector('.blog-slider').classList.contains('swiper-horizontal'));
+        check('首页 slide 数量 >= 3', hs && hs.slides.length >= 3, hs && hs.slides.length);
+        check('首页 slide 宽度已计算 > 0', hs && hs.slides.length && parseFloat(hs.slides[0].style.width) > 0, hs && hs.slides[0].style.width);
+        check('首页分页 bullet 数量 >= 3',
+          document.querySelectorAll('.blog-slider__pagination .swiper-pagination-bullet').length >= 3,
+          document.querySelectorAll('.blog-slider__pagination .swiper-pagination-bullet').length);
+        check('首页为 fade 效果', hs && hs.params.effect === 'fade');
+
+        var g1 = document.getElementById('as_1').swiper;
+        check('文章图库 swiper 已初始化', !!g1 && !g1.destroyed);
+        check('文章图库含导航按钮', !!document.querySelector('#as_1 .swiper-button-next') && !!document.querySelector('#as_1 .swiper-button-prev'));
+        check('文章图库分页 bullet 数量 >= 3',
+          document.querySelectorAll('#as_1 .swiper-pagination .swiper-pagination-bullet').length >= 3,
+          document.querySelectorAll('#as_1 .swiper-pagination .swiper-pagination-bullet').length);
+        check('文章图库为 slide 效果', g1 && g1.params.effect === 'slide');
+
+        var c2 = document.getElementById('as_2').swiper;
+        check('文章卡片 swiper 已初始化', !!c2 && !c2.destroyed);
+        check('文章卡片为 fade 效果', c2 && c2.params.effect === 'fade');
+        check('文章卡片 autoplay 已禁用', c2 && (c2.params.autoplay === false || c2.params.autoplay.enabled === false),
+          JSON.stringify(c2 && c2.params.autoplay));
+        check('文章卡片 autoplay 未在运行', c2 && !c2.autoplay.running);
+        check('首页 autoplay 提供 stop/start 方法',
+          typeof hs.autoplay.stop === 'function' && typeof hs.autoplay.start === 'function');
+        hs.autoplay.stop();
+        var stopped = !hs.autoplay.running;
+        hs.autoplay.start();
+        check('首页 autoplay stop/start 可调用', stopped && hs.autoplay.running === true);
+
+        var idx0 = hs.activeIndex;
+        setTimeout(function () {
+          check('首页 autoplay 自动轮播切换', hs && hs.activeIndex !== idx0, 'index ' + idx0 + ' -> ' + (hs && hs.activeIndex));
+
+          // ===== 分页点击 =====
+          var bullets = document.querySelectorAll('.blog-slider__pagination .swiper-pagination-bullet');
+          if (bullets.length >= 2) { bullets[1].click(); }
+          setTimeout(function () {
+            check('分页 bullet 点击可切换', hs && hs.realIndex === 1, 'realIndex=' + (hs && hs.realIndex));
+            check('程序化 slideTo 可调用', (function () { try { hs.slideTo(0); return true; } catch (_) { return false; } })());
+
+            // ===== PJAX 生命周期测试 =====
+            document.dispatchEvent(new Event('pjax:send'));
+            check('pjax:send 后 window.swiper 已销毁', !window.swiper);
+            var layout = document.getElementById('layout');
+            layout.innerHTML = ''; // 模拟 PJAX 替换 DOM
+            document.dispatchEvent(new Event('pjax:success'));
+            setTimeout(function () {
+              var hs2 = window.swiper;
+              check('pjax:success 后 slider HTML 重新注入', !!layout.querySelector('.blog-slider'));
+              check('pjax:success 后首页 swiper 重新初始化', !!hs2 && !hs2.destroyed);
+              check('pjax:success 后文章图库重新初始化', !!(document.getElementById('as_1') && document.getElementById('as_1').swiper));
+              check('pjax:success 后文章卡片重新初始化', !!(document.getElementById('as_2') && document.getElementById('as_2').swiper));
+              check('全程无 JS 报错', errors.length === 0);
+              render();
+            }, 600);
+          }, 400);
+        }, 3500);
+      });
+    })();
+  </script>
+</body>
+</html>

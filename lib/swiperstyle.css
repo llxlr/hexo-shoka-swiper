@@ -333,12 +333,12 @@ div#swiper_container {
     background-color:var(--color-orange);
     color:var(--header-text-color);
 }
-.blog-slider .swiper-container-horizontal>.swiper-pagination-bullets, .blog-slider .swiper-pagination-custom, .blog-slider .swiper-pagination-fraction {
+.blog-slider .swiper-horizontal>.swiper-pagination-bullets, .blog-slider .swiper-pagination-custom, .blog-slider .swiper-pagination-fraction {
     bottom:10px;
     left:0;
     width:100%;
 }
-.blog-slider__pagination {
+.blog-slider .blog-slider__pagination.swiper-pagination-horizontal {
     position:absolute;
     z-index:21;
     right:20px;
@@ -377,7 +377,7 @@ div#swiper_container {
     height:30px;
 }
 @media screen and (max-width:600px) {
-    .blog-slider__pagination {
+    .blog-slider .blog-slider__pagination.swiper-pagination-horizontal {
         -webkit-transform:translateX(-50%);
         -moz-transform:translateX(-50%);
         -o-transform:translateX(-50%);
@@ -659,6 +659,10 @@ div#swiper_container {
     font-size:13px;
     font-weight:400;
     color:rgba(0,0,0,0.55);
+}
+/* Swiper v14 会在导航按钮内注入 SVG 箭头，与既有圆点设计不符，隐藏以保持 v4 视觉 */
+.article-swiper--gallery .as-nav svg {
+    display:none;
 }
 .article-swiper--gallery .as-dots {
     bottom:10px;
