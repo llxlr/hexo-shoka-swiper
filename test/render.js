@@ -35,7 +35,7 @@ const data = {
   swiper_list: swiper_list,
   default_descr: '再怎么看我也不知道怎么描述它的啦！',
 };
-const tmpl = path.join(__dirname, '../lib/html.njk')
+const tmpl = path.join(__dirname, '../lib/slider.njk')
 if (fs.existsSync(tmpl)) {
   const temple_html_text = env.renderString(fs.readFileSync(tmpl).toString(), data).replace(/  |\r|\n/g, '');
   console.log(temple_html_text);
