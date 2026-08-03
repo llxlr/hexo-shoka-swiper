@@ -18,7 +18,14 @@ nunjucksDate.install(env);
 
 hexo.extend.filter.register('after_generate', () => {
     // 获取所有文章
-    let posts_list = hexo.locals.get('posts').data;
+    let posts_list = hexo.locals.get('posts').data.slice();
+    // hexo-hide-posts 0.4.x 会把隐藏文章从 posts 中移出，单独放入 hidden_posts，
+    // 这里将其合并回来，使得设置过 swiper_index 的隐藏文章也能进入轮播。
+    const hidden_posts = hexo.locals.get('hidden_posts');
+    if (hidden_posts && hidden_posts.data && hidden_posts.data.length) {
+      const postIds = new Set(posts_list.map(item => item._id));
+      posts_list = posts_list.concat(hidden_posts.data.filter(item => !postIds.has(item._id)));
+    }
     let swiper_list = [];
     const image_server = hexo.config.image_server || hexo.theme.config.image_server || '';
     // 若文章的front_matter内设置了index和描述，则将其放到swiper_list内

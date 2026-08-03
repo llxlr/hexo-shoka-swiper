@@ -68,6 +68,8 @@
   ---
   ```
 
+  > 如果你的博客安装了 [hexo-hide-posts](https://github.com/prinsss/hexo-hide-posts)（0.4.x），被隐藏的文章（front_matter 中 `hidden: true`）默认不会出现在任何列表中，包括本插件的轮播。若希望某篇隐藏文章也进入轮播，只需在它的 front_matter 中同时设置 `swiper_index` 即可，插件会自动读取 `hexo-hide-posts` 提供的 `hidden_posts` 变量。
+
   如需使用**视频卡片**，增加以下 front_matter 配置：
 
   ```markdown
