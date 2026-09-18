@@ -5,6 +5,10 @@ on:
     tags:
       - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布/补发的 tag（如 v0.1.16），留空则用当前 ref"
+        required: false
 
 jobs:
   build:
@@ -20,20 +24,30 @@ jobs:
 
       - run: npm install
       # 发布到 npm
-      - run: npm publish --access public
+      # 幂等：版本已发布时跳过，方便失败后重跑或补发 Release
+      - run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "hexo-shoka-swiper@$VERSION" version >/dev/null 2>&1; then
+            echo "hexo-shoka-swiper@$VERSION 已发布，跳过 npm publish"
+          else
+            npm publish --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # 发布到 GitHub Packages（GitHub 要求 scoped 包名，临时修改）
+      # 该链路与 npm 相互独立，失败不应阻断后面的 Release 创建
       - run: |
           npm pkg set name="@llxlr/hexo-shoka-swiper"
           npm config set "//npm.pkg.github.com/:_authToken" "${NODE_AUTH_TOKEN}"
-          npm publish --registry=https://npm.pkg.github.com/
+          npm publish --registry=https://npm.pkg.github.com/ || echo "::warning::GitHub Packages 发布失败，已跳过"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+        continue-on-error: true
 
       - uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           draft: false
           prerelease: false
         env:
