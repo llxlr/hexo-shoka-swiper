@@ -149,7 +149,7 @@
 
   |参数|默认值|释义|
   |:--|:--|:--|
-  |style|gallery|布局风格：`gallery` 图库式 / `card` 迷你卡片式|
+  |style|gallery|布局风格：`gallery` 图库式 / `card` 迷你卡片式 / `gk` gk 卡片式|
   |ratio|16:9|gallery 模式下媒体宽高比：`16:9` / `4:3` / `1:1`|
   |autoplay|3000|自动播放间隔（毫秒），`false` 关闭自动播放|
   |mousewheel|true|鼠标滚轮翻页开关，`false` 关闭|
@@ -165,9 +165,52 @@
   |embed|平台嵌入 iframe 代码|
   |type|`image` / `video`（通常自动检测，可不填）|
 
+  **兼容 Shoka 主题 gk 卡片（`{% gk %}` / `{% gkfile %}`）**
+
+  主题 gk 标签渲染出的每张 `.gk-item` 卡片会自动成为一张 slide，布局风格自动切换为 `gk`，适合把小物件、装备等卡片做成轮播：
+
+  ```markdown
+  {% swiper style:gk, autoplay:false %}
+    {% gkfile "toys/_data.yml" %}
+  {% endswiper %}
+  ```
+
+  也可以把 gk 卡片写进单个 `{% slide %}`，此时卡片本体即 slide 内容（不再生成封面图与描述浮层）：
+
+  ```markdown
+  {% swiper style:gk %}
+    {% slide %}
+      {% gk "figure" %}
+      - name: 初音未来
+        price: ¥4,800
+        release: 2023-03
+      {% endgk %}
+    {% endslide %}
+  {% endswiper %}
+  ```
+
+  gk 卡片的图片使用 `data-src` 懒加载，插件会在初始化时补全 `src`，避免非当前 slide 的图片一直空白；`{% gkfile %}` 是异步标签，插件已将 `swiper` / `slide` 注册为异步标签以支持嵌套。
+
+  **gk 卡片多图自动轮播**
+
+  主题 gk 卡片在条目包含多张图片时会输出 `.gk-img > .gallery` 的纵向堆叠，插件检测到这种多图卡片后会自动注入 Swiper 资源，并在浏览器端把该区域原地升级为轮播（桌面端圆点 + 左右箭头，移动端滑动 + 圆点）：
+
+  ```yaml
+  - name: 示例手办
+    images:
+      - url: /images/a.jpg
+      - url: /images/b.jpg
+      - url: /images/c.jpg
+  ```
+
+  - 单图卡片保持原样，不会被改写；
+  - 图片仍走主题的 `data-src` 懒加载：初始化时只加载当前与下一张，切换时继续补充；
+  - 轮播内会忽略 gk 数据里为纵向堆叠写的 `style: zoom:50%` 缩放，保证与同页单图卡片的图片尺寸一致（需要保留可在自定义 CSS 中覆盖）；
+  - 仅当页面确实存在多图 gk 卡片时才注入 Swiper 资源，已加载过资源的页面不会重复注入。
+
   slide 的内容会作为描述文本渲染（支持 Markdown）。即使首页 swiper 关闭，文章内 tag 也能独立工作，且适配 Shoka PJAX。
 
-  两种风格均默认开启**自动播放**（3s 间隔）、**鼠标滚轮翻页**和**循环轮播**（滚到最后自动回到第一张）。可通过参数关闭：
+  三种风格（`gallery` / `card` / `gk`）均默认开启**自动播放**（3s 间隔）、**鼠标滚轮翻页**和**循环轮播**（滚到最后自动回到第一张）。可通过参数关闭：
 
   ```markdown
   {% swiper style:gallery, autoplay:false, mousewheel:false %}

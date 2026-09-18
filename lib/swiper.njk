@@ -4,11 +4,11 @@
   <div class="swiper-wrapper">
     {{ swiperItemData | safe }}
   </div>
-  {% if style === 'gallery' %}
+  {% if style === 'card' %}
+  <div class="swiper-pagination as-dots as-dots--card"></div>
+  {% else %}
   <div class="swiper-button-prev as-nav"></div>
   <div class="swiper-button-next as-nav"></div>
   <div class="swiper-pagination as-dots"></div>
-  {% else %}
-  <div class="swiper-pagination as-dots as-dots--card"></div>
   {% endif %}
 </div>

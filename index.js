@@ -149,11 +149,30 @@ const swiperNjkSrc = fs.readFileSync(path.join(__dirname, './lib/swiper.njk')).t
 function injectArticleSwiperAssets() {
   if (articleSwiperAssetsInjected) return;
   articleSwiperAssetsInjected = true;
+  const config = hexo.config.swiper || (hexo.theme.config && hexo.theme.config.swiper) || {};
+  const swiperCss = config.swiper_css ? urlFor(config.swiper_css) : cdn + '/lib/swiper.min.css';
+  const swiperJs = config.swiper_js ? urlFor(config.swiper_js) : cdn + '/lib/swiper.min.js';
+  const customCss = config.custom_css ? urlFor(config.custom_css) : cdn + '/lib/swiperstyle.css';
+  const customJs = config.custom_js ? urlFor(config.custom_js) : cdn + '/lib/swiper_init.js';
   hexo.extend.injector.register('head_end',
-    `<link rel="stylesheet" href="${cdn}/lib/swiper.min.css">`, 'article_swiper');
+    `<link rel="stylesheet" href="${swiperCss}"><link rel="stylesheet" href="${customCss}">`, 'default');
   hexo.extend.injector.register('body_end',
-    `<script src="${cdn}/lib/swiper.min.js"></script>`, 'article_swiper');
+    `<script src="${swiperJs}"></script><script src="${customJs}"></script>`, 'default');
 }
+
+// ==================== gk 卡片多图轮播（构建期转换） ====================
+// Shoka 主题的 gk 卡片会把多张图片堆叠在 .gk-img > .gallery 中；
+// 这里在文章/页面渲染完成后把多图区域转换成 Swiper 结构，运行时由 swiper_init.js 初始化。
+hexo.extend.filter.register('after_post_render', function(data) {
+  if (!data || typeof data.content !== 'string') return data;
+  if (data.content.indexOf('class="gk-img"') === -1) return data;
+  const converted = transformGkGalleries(data.content, gkAutoplayDelay());
+  if (converted !== data.content) {
+    data.content = converted;
+    injectArticleSwiperAssets();
+  }
+  return data;
+});
 
 /**
  * 解析 tag 参数。支持两种格式：
@@ -188,17 +207,113 @@ function parseTagArgs(args) {
 /** 生成唯一 swiper ID */
 function uid() { return 'as_' + (++articleSwiperCount) + '_' + Math.random().toString(36).slice(2, 8); }
 
+/** 判断渲染结果中是否包含 Shoka 主题的 gk 卡片 */
+function isGkCardHtml(html) {
+  return typeof html === 'string' && html.indexOf('class="gk-item"') !== -1;
+}
+
+/**
+ * 按 <div> 配对深度查找指定 class 的 div 块，返回 { start, end, html } 列表。
+ * 用于在不引入 HTML 解析依赖的前提下定位主题 gk 标签渲染出的结构。
+ */
+function findDivBlocks(html, className) {
+  const blocks = [];
+  if (typeof html !== 'string') return blocks;
+  const openTag = `<div class="${className}">`;
+  let cursor = html.indexOf(openTag);
+  while (cursor !== -1) {
+    const re = /<div\b|<\/div>/g;
+    re.lastIndex = cursor;
+    let depth = 0;
+    let end = -1;
+    let match;
+    while ((match = re.exec(html)) !== null) {
+      if (match[0] === '</div>') {
+        depth -= 1;
+        if (depth === 0) { end = re.lastIndex; break; }
+      } else {
+        depth += 1;
+      }
+    }
+    if (end === -1) break;
+    blocks.push({ start: cursor, end: end, html: html.slice(cursor, end) });
+    cursor = html.indexOf(openTag, end);
+  }
+  return blocks;
+}
+
+/**
+ * 拆分 Shoka 主题 gk 卡片（`{% gk %}` / `{% gkfile %}` 的渲染结果）。
+ * 返回每张卡片的完整 HTML 片段。
+ */
+function splitGkCards(html) {
+  return findDivBlocks(html, 'gk-item').map(block => block.html);
+}
+
+/** gk 卡片多图轮播的自动播放间隔（配置 swiper.gk_autoplay，毫秒，默认 0 关闭） */
+function gkAutoplayDelay() {
+  const config = hexo.config.swiper || (hexo.theme.config && hexo.theme.config.swiper) || {};
+  const value = config.gk_autoplay === undefined ? 0 : config.gk_autoplay;
+  if (value === false || value === 'false') return 0;
+  const delay = parseInt(value, 10);
+  return isNaN(delay) || delay < 0 ? 0 : delay;
+}
+
+/**
+ * 把 gk 卡片的多图区域（.gk-img > .gallery）转换为 Swiper 轮播结构，
+ * 单图卡片保持主题原有渲染。运行时的初始化见 lib/swiper_init.js。
+ */
+function transformGkGalleries(html, autoplay) {
+  if (typeof html !== 'string' || html.indexOf('class="gk-img"') === -1) return html;
+  const blocks = findDivBlocks(html, 'gk-img');
+  // 从后往前替换，避免前面的替换影响后面的索引
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const block = blocks[i];
+    const gallery = findDivBlocks(block.html, 'gallery')[0];
+    if (!gallery) continue;
+    const imgs = gallery.html.match(/<img\b[^>]*>/g);
+    if (!imgs || imgs.length < 2) continue;
+    const slides = imgs.map(img => `<div class="swiper-slide">${img}</div>`).join('');
+    const swiperHtml = `<div class="gk-swiper swiper" data-gk-swiper data-autoplay="${autoplay}">`
+      + `<div class="swiper-wrapper">${slides}</div>`
+      + '<div class="swiper-button-prev gk-nav"></div>'
+      + '<div class="swiper-button-next gk-nav"></div>'
+      + '<div class="swiper-pagination gk-dots"></div>'
+      + '</div>';
+    const newBlock = block.html.slice(0, gallery.start) + swiperHtml + block.html.slice(gallery.end);
+    html = html.slice(0, block.start) + newBlock + html.slice(block.end);
+  }
+  return html;
+}
+
+/** 把一张 gk 卡片包装成文章内轮播的 slide */
+function gkCardSlide(card) {
+  return `<div class="swiper-slide as-slide as-slide--gk">
+    <div class="as-slide__gk">${card}</div>
+  </div>`;
+}
+
 /**
  * {% slide %} — 轮播子项（内层标签，先于 swiper 执行）
  * 参数：cover, link, video, poster, embed, type（自动检测可不填）
- * 内容：描述文本（支持 Markdown）
+ * 内容：描述文本（支持 Markdown）；若内容为 Shoka 主题 gk 卡片（{% gk %} / {% gkfile %}），
+ *       则卡片本体作为 slide 内容，每张卡片对应一张 slide。
+ * 注册为 async：这样才可以嵌套主题里的异步标签（如 {% gkfile %}）。
  */
-hexo.extend.tag.register('slide', function(args, content) {
+hexo.extend.tag.register('slide', async function(args, content) {
   const opts = parseTagArgs(args);
   // 自动检测类型
   if (!opts.type) {
     opts.type = (opts.video || opts.embed) ? 'video' : 'image';
   }
+
+  // 兼容 Shoka 主题 gk 卡片：slide 内容为 {% gk %} / {% gkfile %} 的渲染结果时，
+  // 卡片本体即 slide 主体（多张卡片则各自成为一张 slide），不再生成封面图与描述浮层。
+  if (opts.type === 'gk' || isGkCardHtml(content)) {
+    const gkCards = splitGkCards(content);
+    return (gkCards.length > 0 ? gkCards : [String(content).trim()]).map(gkCardSlide).join('');
+  }
+
   // 渲染描述（Markdown）
   let caption = '';
   if (content && content.trim()) {
@@ -231,21 +346,27 @@ hexo.extend.tag.register('slide', function(args, content) {
     <div class="as-slide__media blog-slider__img">${linkOpen}<img src="${opts.cover || cdn + '/images/loading.gif'}" alt="" loading="lazy"/>${linkClose}</div>
     ${caption ? `<div class="as-slide__content blog-slider__content"><div class="as-slide__text blog-slider__text">${caption}</div></div>` : ''}
   </div>`;
-}, { ends: true });
+}, { ends: true, async: true });
 
 /**
  * {% swiper %} — 文章内轮播容器（外层标签）
- * 参数：style（gallery/card，默认 gallery）、ratio（16:9/4:3/1:1，默认 16:9）
+ * 参数：style（gallery/card/gk，默认 gallery，内容为 gk 卡片时自动用 gk）、
+ *      ratio（16:9/4:3/1:1，默认 16:9）
+ * 注册为 async：这样才可以嵌套主题里的异步标签（如 {% gkfile %}）。
  */
-hexo.extend.tag.register('swiper', function(args, content) {
+hexo.extend.tag.register('swiper', async function(args, content) {
   injectArticleSwiperAssets();
   const opts = parseTagArgs(args);
-  const style = opts.style || 'gallery';
   const ratio = opts.ratio || '16:9';
   const id = uid();
   // 计算 aspect-ratio
   const ratioMap = { '16:9': '56.25%', '4:3': '75%', '1:1': '100%' };
   const paddingBottom = ratioMap[ratio] || '56.25%';
+  // 兼容 Shoka 主题 gk 卡片：{% gk %} / {% gkfile %} 的输出自动按卡片拆分成多张 slide
+  const body = typeof content === 'string' ? content : '';
+  const gkCards = body.indexOf('swiper-slide') === -1 ? splitGkCards(body) : [];
+  const style = opts.style ? opts.style : (isGkCardHtml(body) ? 'gk' : 'gallery');
+  const swiperItemData = gkCards.length > 0 ? gkCards.map(gkCardSlide).join('') : body;
 
   const data = {
     swiperId: id,
@@ -254,7 +375,42 @@ hexo.extend.tag.register('swiper', function(args, content) {
     paddingBottom: paddingBottom,
     autoplay: opts.autoplay !== undefined ? opts.autoplay : '3000',
     mousewheel: opts.mousewheel !== 'false',
-    swiperItemData: content,
+    swiperItemData: swiperItemData,
   };
   return env.renderString(swiperNjkSrc, data);
-}, { ends: true });
+}, { ends: true, async: true });
+
+// ==================== gk 卡片多图轮播 ====================
+/**
+ * Shoka 主题的 `{% gk %}` / `{% gkfile %}` 在条目有多张图片时会输出
+ * <div class="gk-img"><div class="gallery"><img><img>…</div></div>，
+ * 默认是纵向堆叠。这里在页面渲染后按需注入 Swiper 资源，
+ * 由 swiper_init.js 在浏览器端把 .gallery 原地升级为轮播。
+ */
+hexo.extend.filter.register('after_render:html', function (html) {
+  // 只处理完整文档（文章正文渲染结果里没有 </head>，直接跳过）
+  if (typeof html !== 'string' || html.indexOf('</head>') === -1) return html;
+  if (!/class="gk-img"[\s\S]*?class="gallery"/.test(html)) return html;
+
+  const theme_config = hexo.theme.config || {};
+  const config = hexo.config.swiper || theme_config.swiper || {};
+  const css_list = [
+    config.swiper_css ? urlFor(config.swiper_css) : cdn + '/lib/swiper.min.css',
+    config.custom_css ? urlFor(config.custom_css) : cdn + '/lib/swiperstyle.css',
+  ];
+  const js_list = [
+    config.swiper_js ? urlFor(config.swiper_js) : cdn + '/lib/swiper.min.js',
+    config.custom_js ? urlFor(config.custom_js) : cdn + '/lib/swiper_init.js',
+  ];
+  // 首页轮播或文章内轮播可能已经注入过同样的资源，避免重复加载
+  const loaded = url => {
+    const name = String(url).split('?')[0].split('/').pop();
+    return name.length > 0 && html.includes(name);
+  };
+
+  const css_text = css_list.filter(url => !loaded(url)).map(url => `<link rel="stylesheet" href="${url}">`).join('');
+  const js_text = js_list.filter(url => !loaded(url)).map(url => `<script src="${url}"></script>`).join('');
+  if (!css_text && !js_text) return html;
+
+  return html.replace('</head>', css_text + '</head>').replace('</body>', js_text + '</body>');
+});

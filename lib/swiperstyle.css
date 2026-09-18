@@ -842,3 +842,191 @@ div#swiper_container {
         padding:16px 12px 12px;
     }
 }
+
+/* -- GK 卡片式（兼容 Shoka 主题 {% gk %} / {% gkfile %} 卡片）-- */
+.article-swiper--gk {
+    background:transparent;
+    padding:0 0 34px;
+}
+.article-swiper--gk .as-slide {
+    display:block;
+    height:auto;
+}
+.article-swiper--gk .as-slide__gk {
+    width:100%;
+}
+.article-swiper--gk .as-slide__gk .gk-item {
+    margin-bottom:0;
+    box-sizing:border-box;
+}
+.article-swiper--gk .as-slide__gk .gk-img img {
+    width:auto;
+    max-width:100%;
+    height:auto;
+    max-height:300px;
+    object-fit:contain;
+}
+.article-swiper--gk .as-nav {
+    width:28px;
+    height:28px;
+    background:rgba(255,255,255,0.25);
+    border-radius:50%;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08);
+    -webkit-transition:background .2s, -webkit-transform .2s;
+    -moz-transition:background .2s, -moz-transform .2s;
+    -o-transition:background .2s, -o-transform .2s;
+    -ms-transition:background .2s, -ms-transform .2s;
+    transition:background .2s, transform .2s;
+}
+.article-swiper--gk .as-nav:hover {
+    background:rgba(255,255,255,0.55);
+    -webkit-transform:scale(1.08);
+    -moz-transform:scale(1.08);
+    -o-transform:scale(1.08);
+    -ms-transform:scale(1.08);
+    transform:scale(1.08);
+}
+.article-swiper--gk .as-nav::after {
+    font-size:13px;
+    font-weight:400;
+    color:rgba(0,0,0,0.55);
+}
+/* Swiper v14 会在导航按钮内注入 SVG 箭头，与既有圆点设计不符，隐藏以保持 v4 视觉 */
+.article-swiper--gk .as-nav svg {
+    display:none;
+}
+.article-swiper--gk .as-dots {
+    bottom:10px;
+    z-index:10;
+}
+.article-swiper--gk .as-dots .swiper-pagination-bullet {
+    width:8px;
+    height:8px;
+    background:var(--text-color);
+    opacity:.4;
+    -webkit-transition:all .2s;
+    -moz-transition:all .2s;
+    -o-transition:all .2s;
+    -ms-transition:all .2s;
+    transition:all .2s;
+}
+.article-swiper--gk .as-dots .swiper-pagination-bullet-active {
+    opacity:1;
+    background:var(--primary-color);
+    width:20px;
+    border-radius:4px;
+}
+@media screen and (max-width:600px) {
+    .article-swiper--gk {
+        padding-bottom:30px;
+    }
+    .article-swiper--gk .as-slide__gk .gk-item {
+        padding:12px 14px;
+    }
+    .article-swiper--gk .as-nav {
+        width:26px;
+        height:26px;
+    }
+    .article-swiper--gk .as-nav::after {
+        font-size:11px;
+    }
+}
+
+/* -- gk 卡片多图轮播（Shoka 主题 {% gk %} / {% gkfile %} 的多图条目）-- */
+.gk-img .gk-swiper {
+    width:100%;
+    border-radius:8px;
+    overflow:hidden;
+}
+.gk-img .gk-swiper .swiper-slide {
+    display:-webkit-box;
+    display:-moz-box;
+    display:-webkit-flex;
+    display:-ms-flexbox;
+    display:flex;
+    -webkit-box-align:center;
+    -moz-box-align:center;
+    -o-box-align:center;
+    -ms-flex-align:center;
+    -webkit-align-items:center;
+    align-items:center;
+    -webkit-box-pack:center;
+    -moz-box-pack:center;
+    -o-box-pack:center;
+    -ms-flex-pack:center;
+    -webkit-justify-content:center;
+    justify-content:center;
+}
+.gk-img .gk-swiper .swiper-slide img {
+    width:auto;
+    max-width:100%;
+    max-height:300px;
+    object-fit:contain;
+}
+.gk-img .gk-swiper .gk-nav {
+    width:26px;
+    height:26px;
+    margin-top:-13px;
+    background:rgba(255,255,255,0.35);
+    border-radius:50%;
+    box-shadow:0 1px 4px rgba(0,0,0,0.15);
+    -webkit-transition:background .2s, -webkit-transform .2s;
+    -moz-transition:background .2s, -moz-transform .2s;
+    -o-transition:background .2s, -o-transform .2s;
+    -ms-transition:background .2s, -ms-transform .2s;
+    transition:background .2s, transform .2s;
+}
+.gk-img .gk-swiper .gk-nav:hover {
+    background:rgba(255,255,255,0.7);
+    -webkit-transform:scale(1.06);
+    -moz-transform:scale(1.06);
+    -o-transform:scale(1.06);
+    -ms-transform:scale(1.06);
+    transform:scale(1.06);
+}
+/* Swiper v14 会在导航按钮内注入 SVG 箭头，改用字符箭头保持小尺寸 */
+.gk-img .gk-swiper .gk-nav svg {
+    display:none;
+}
+.gk-img .gk-swiper .gk-nav::after {
+    font-size:18px;
+    font-weight:400;
+    line-height:1;
+    color:rgba(0,0,0,0.55);
+}
+.gk-img .gk-swiper .gk-nav--prev::after {
+    content:'‹';
+}
+.gk-img .gk-swiper .gk-nav--next::after {
+    content:'›';
+}
+.gk-img .gk-swiper .gk-dots {
+    bottom:6px;
+    z-index:10;
+}
+.gk-img .gk-swiper .gk-dots .swiper-pagination-bullet {
+    width:6px;
+    height:6px;
+    margin:0 3px;
+    background:#fff;
+    opacity:.6;
+    box-shadow:0 1px 3px rgba(0,0,0,0.35);
+    -webkit-transition:all .2s;
+    -moz-transition:all .2s;
+    -o-transition:all .2s;
+    -ms-transition:all .2s;
+    transition:all .2s;
+}
+.gk-img .gk-swiper .gk-dots .swiper-pagination-bullet-active {
+    opacity:1;
+    width:16px;
+    border-radius:3px;
+}
+@media screen and (max-width:600px) {
+    .gk-img .gk-swiper .gk-nav {
+        display:none;
+    }
+    .gk-img .gk-swiper .swiper-slide img {
+        max-height:240px;
+    }
+}
