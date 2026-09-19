@@ -1,6 +1,6 @@
 # hexo-shoka-swiper
 
-给`hexo-theme-shoka`添加 [首页轮播图](https://akilar.top/posts/8e1264d1/)
+给 `hexo-theme-shoka` 添加 [首页轮播图](https://akilar.top/posts/8e1264d1/)、文章内轮播（`{% swiper %}` / `{% slide %}`），并兼容主题的 gk 卡片（`{% gk %}` / `{% gkfile %}` 的多图轮播、整卡轮播）。
 
 ## 安装
 
@@ -170,7 +170,23 @@
 
   **兼容 Shoka 主题 gk 卡片（`{% gk %}` / `{% gkfile %}`）**
 
-  在 `{% swiper %}` 里放 gk 卡片时，每张 `.gk-item` 可以成为一张 slide（容器风格自动用 `gk`）。该行为**默认关闭**，按需打开：
+  gk 卡片有两种玩法，**默认只做第一种**，第二种需要显式打开：
+
+  |玩法|写法|
+  |:--|:--|
+  |卡片**内**的多图轮播|直接写 `{% gkfile "toys/_data.yml" %}`，**不需要**外层 `{% swiper %}`|
+  |整张卡片作为轮播页|`{% swiper gk:true %}{% gkfile … %}{% endswiper %}`，每张 `.gk-item` 成为一张 slide|
+
+  > Swiper 的 CSS/JS 由插件自己按需注入：构建期检测到「多图 gk 卡片」就注入（地址取配置里的 `swiper_css` / `swiper_js` / `custom_css` / `custom_js`，否则用默认 CDN）。所以**不需要**用 `{% swiper %}` 包裹来「加载 swiper」——只要装了 `hexo-shoka-swiper`（≥ 0.1.18）就生效；没装插件时多图条目保持主题原本的纵向堆叠。
+
+  **整卡轮播的开关**（优先级：tag 参数 `gk:true` / `gk:false` > 显式 `style:gk` > 配置 `swiper.gk_slides`，默认 `false`）
+
+  |写法|含义|
+  |:--|:--|
+  |`{% swiper gk:true %}`|本次把 gk 卡片拆成 slide（无视配置）|
+  |`{% swiper gk:false %}`|本次不拆：gk 卡片不是 slide，插件会自动忽略该 swiper 容器、原样输出卡片并打印一条 WARN，避免布局被撑坏|
+  |`{% swiper style:gk %}`|显式声明 gk 风格，等价于开启|
+  |配置 `gk_slides: true`|全局默认开启，标签里可省略 `gk:true`|
 
   ```yml
   # _config.yml 或 _config.shoka.yml
@@ -183,15 +199,6 @@
     {% gkfile "toys/_data.yml" %}
   {% endswiper %}
   ```
-
-  开关优先级：tag 参数 `gk:true` / `gk:false` > 显式 `style:gk` > 配置 `swiper.gk_slides`（默认 `false`）。
-
-  |写法|含义|
-  |:--|:--|
-  |`{% swiper gk:true %}`|本次把 gk 卡片拆成 slide（无视配置）|
-  |`{% swiper gk:false %}`|本次不拆，gk 卡片原样落入容器（可自己用 `{% slide %}` 包裹）|
-  |`{% swiper style:gk %}`|显式声明 gk 风格，等价于开启|
-  |配置 `gk_slides: true`|全局默认开启，标签里可省略 `gk:true`|
 
   也可以把 gk 卡片写进单个 `{% slide %}`（用 `type:gk` 显式声明，或全局开启后自动识别），此时卡片本体即 slide 内容（不再生成封面图与描述浮层）：
 
@@ -211,7 +218,7 @@
 
   **gk 卡片多图自动轮播**
 
-  主题 gk 卡片在条目包含多张图片时会输出 `.gk-img > .gallery` 的纵向堆叠。插件在**构建期**把这种多图区域转换成 `.gk-swiper` 轮播结构（桌面端圆点 + 左右箭头，移动端滑动 + 圆点），运行时由 `swiper_init.js` 初始化实例，同时注入所需资源：
+  主题 gk 卡片在条目包含多张图片时会输出 `.gk-img > .gallery` 的纵向堆叠。插件在**构建期**把这个区域转换成 `.gk-swiper` 轮播结构（桌面端圆点 + 左右箭头，移动端滑动 + 圆点），运行时由 `swiper_init.js` 初始化实例：
 
   ```yaml
   - name: 示例手办
@@ -222,18 +229,19 @@
       - url: /images/c.jpg
   ```
 
-  **开关**
+  **开关**（条目开关需要主题 gk 标签输出 `data-gk-carousel`，即主题侧 `scripts/tags/gk.js` 已更新）
 
   |位置|写法|说明|
   |:--|:--|:--|
-  |站点/主题配置|`swiper.gk_carousel: true`|总开关，默认值：多图条目默认使用轮播|
+  |站点/主题配置|`swiper.gk_carousel: true`|总开关，默认值：多图条目都使用轮播|
   |站点/主题配置|`swiper.gk_carousel: false`|总开关关闭：多图条目保持原来的纵向堆叠|
   |gk 条目|`carousel: false`|该条目不做轮播（总开关开启时用来排除）|
   |gk 条目|`carousel: true`|该条目单独开启轮播（总开关关闭时用来挑选）|
+  |站点/主题配置|`swiper.gk_autoplay: 4000`|轮播自动播放间隔（毫秒），默认 `0` 不自动播放|
 
   条目级的 `carousel` 由主题 gk 标签渲染成 `.gk-img[data-gk-carousel="on|off"]`，插件读取后决定该条目是否轮播；没写 `carousel` 的条目跟随总开关。
 
-  - 单图卡片保持原样，不会被改写；
+  - 单图条目保持原样，不会被改写；
   - 轮播默认不自动播放，可用配置 `swiper.gk_autoplay`（毫秒）打开，例如 `gk_autoplay: 4000`；
   - 图片仍走主题的 `data-src` 懒加载：初始化时只加载当前与下一张，切换时继续补充；
   - 轮播内会忽略 gk 数据里为纵向堆叠写的 `style: zoom:50%` 缩放，保证与同页单图卡片的图片尺寸一致（需要保留可在自定义 CSS 中覆盖）；
@@ -241,7 +249,7 @@
 
   slide 的内容会作为描述文本渲染（支持 Markdown）。即使首页 swiper 关闭，文章内 tag 也能独立工作，且适配 Shoka PJAX。
 
-  三种风格（`gallery` / `card` / `gk`）均默认开启**自动播放**（3s 间隔）、**鼠标滚轮翻页**和**循环轮播**（滚到最后自动回到第一张）。可通过参数关闭：
+  三种容器风格（`gallery` / `card` / `gk`）均默认开启**自动播放**（3s 间隔）、**鼠标滚轮翻页**和**循环轮播**（滚到最后自动回到第一张）；gk 卡片**条目内**的多图轮播是另一套，默认不自动播放（见上方 `gk_autoplay`）。可通过参数关闭：
 
   ```markdown
   {% swiper style:gallery, autoplay:false, mousewheel:false %}
