@@ -54,6 +54,8 @@
   |swiper_js|url|【可选】自定义的swiper依赖项加js链接|
   |custom_css|url|【可选】适配主题样式补丁|
   |custom_js|url|【可选】swiper初始化方法|
+  |gk_slides|true/false|【可选】`{% swiper %}` 是否把 gk 卡片拆成 slide，默认 false；tag 参数 `gk:true/false` 可覆盖|
+  |gk_carousel|true/false|【可选】gk 卡片内的多图是否用轮播展示，默认 true；条目中用 `carousel: true/false` 覆盖|
 
 4. 使用方法
   在文章的`front_matter`中添加`swiper_index`配置项即可。
@@ -167,19 +169,34 @@
 
   **兼容 Shoka 主题 gk 卡片（`{% gk %}` / `{% gkfile %}`）**
 
-  主题 gk 标签渲染出的每张 `.gk-item` 卡片会自动成为一张 slide，布局风格自动切换为 `gk`，适合把小物件、装备等卡片做成轮播：
+  在 `{% swiper %}` 里放 gk 卡片时，每张 `.gk-item` 可以成为一张 slide（容器风格自动用 `gk`）。该行为**默认关闭**，按需打开：
+
+  ```yml
+  # _config.yml 或 _config.shoka.yml
+  swiper:
+    gk_slides: true     # 默认 false：不把 gk 卡片拆成 slide
+  ```
 
   ```markdown
-  {% swiper style:gk, autoplay:false %}
+  {% swiper gk:true, autoplay:false %}
     {% gkfile "toys/_data.yml" %}
   {% endswiper %}
   ```
 
-  也可以把 gk 卡片写进单个 `{% slide %}`，此时卡片本体即 slide 内容（不再生成封面图与描述浮层）：
+  开关优先级：tag 参数 `gk:true` / `gk:false` > 显式 `style:gk` > 配置 `swiper.gk_slides`（默认 `false`）。
+
+  |写法|含义|
+  |:--|:--|
+  |`{% swiper gk:true %}`|本次把 gk 卡片拆成 slide（无视配置）|
+  |`{% swiper gk:false %}`|本次不拆，gk 卡片原样落入容器（可自己用 `{% slide %}` 包裹）|
+  |`{% swiper style:gk %}`|显式声明 gk 风格，等价于开启|
+  |配置 `gk_slides: true`|全局默认开启，标签里可省略 `gk:true`|
+
+  也可以把 gk 卡片写进单个 `{% slide %}`（用 `type:gk` 显式声明，或全局开启后自动识别），此时卡片本体即 slide 内容（不再生成封面图与描述浮层）：
 
   ```markdown
-  {% swiper style:gk %}
-    {% slide %}
+  {% swiper %}
+    {% slide type:gk %}
       {% gk "figure" %}
       - name: 初音未来
         price: ¥4,800
@@ -197,16 +214,28 @@
 
   ```yaml
   - name: 示例手办
+    carousel: true      # 可选：该条目是否轮播，见下方「开关」
     images:
       - url: /images/a.jpg
       - url: /images/b.jpg
       - url: /images/c.jpg
   ```
 
+  **开关**
+
+  |位置|写法|说明|
+  |:--|:--|:--|
+  |站点/主题配置|`swiper.gk_carousel: true`|总开关，默认值：多图条目默认使用轮播|
+  |站点/主题配置|`swiper.gk_carousel: false`|总开关关闭：多图条目保持原来的纵向堆叠|
+  |gk 条目|`carousel: false`|该条目不做轮播（总开关开启时用来排除）|
+  |gk 条目|`carousel: true`|该条目单独开启轮播（总开关关闭时用来挑选）|
+
+  条目级的 `carousel` 由主题 gk 标签渲染成 `.gk-img[data-gk-carousel="on|off"]`，插件读取后决定该条目是否轮播；没写 `carousel` 的条目跟随总开关。
+
   - 单图卡片保持原样，不会被改写；
   - 图片仍走主题的 `data-src` 懒加载：初始化时只加载当前与下一张，切换时继续补充；
   - 轮播内会忽略 gk 数据里为纵向堆叠写的 `style: zoom:50%` 缩放，保证与同页单图卡片的图片尺寸一致（需要保留可在自定义 CSS 中覆盖）；
-  - 仅当页面确实存在多图 gk 卡片时才注入 Swiper 资源，已加载过资源的页面不会重复注入。
+  - 仅当页面确实存在需要轮播的多图 gk 卡片时才注入 Swiper 资源，已加载过资源的页面不会重复注入。
 
   slide 的内容会作为描述文本渲染（支持 Markdown）。即使首页 swiper 关闭，文章内 tag 也能独立工作，且适配 Shoka PJAX。
 

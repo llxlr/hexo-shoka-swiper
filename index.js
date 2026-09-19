@@ -294,10 +294,21 @@ function gkCardSlide(card) {
 }
 
 /**
+ * tag 侧 gk 开关：配置项 swiper.gk_slides，默认关闭。
+ * 关闭时 {% swiper %} 不会把 gk 卡片拆成 slide，需要 {% swiper gk:true %} 或 style:gk 显式开启。
+ */
+function gkSlidesEnabled() {
+  const theme_config = hexo.theme.config || {};
+  const config = hexo.config.swiper || theme_config.swiper || {};
+  return config.gk_slides === true;
+}
+
+/**
  * {% slide %} — 轮播子项（内层标签，先于 swiper 执行）
  * 参数：cover, link, video, poster, embed, type（自动检测可不填）
- * 内容：描述文本（支持 Markdown）；若内容为 Shoka 主题 gk 卡片（{% gk %} / {% gkfile %}），
- *       则卡片本体作为 slide 内容，每张卡片对应一张 slide。
+ * 内容：描述文本（支持 Markdown）；type:gk 或（配置打开 gk_slides 时）内容为
+ *       Shoka 主题 gk 卡片（{% gk %} / {% gkfile %}）时，卡片本体作为 slide 内容，
+ *       每张卡片对应一张 slide。
  * 注册为 async：这样才可以嵌套主题里的异步标签（如 {% gkfile %}）。
  */
 hexo.extend.tag.register('slide', async function(args, content) {
@@ -307,9 +318,9 @@ hexo.extend.tag.register('slide', async function(args, content) {
     opts.type = (opts.video || opts.embed) ? 'video' : 'image';
   }
 
-  // 兼容 Shoka 主题 gk 卡片：slide 内容为 {% gk %} / {% gkfile %} 的渲染结果时，
+  // 兼容 Shoka 主题 gk 卡片：type:gk 显式开启，或配置 gk_slides:true 时自动识别。
   // 卡片本体即 slide 主体（多张卡片则各自成为一张 slide），不再生成封面图与描述浮层。
-  if (opts.type === 'gk' || isGkCardHtml(content)) {
+  if (opts.type === 'gk' || (gkSlidesEnabled() && isGkCardHtml(content))) {
     const gkCards = splitGkCards(content);
     return (gkCards.length > 0 ? gkCards : [String(content).trim()]).map(gkCardSlide).join('');
   }
@@ -351,7 +362,7 @@ hexo.extend.tag.register('slide', async function(args, content) {
 /**
  * {% swiper %} — 文章内轮播容器（外层标签）
  * 参数：style（gallery/card/gk，默认 gallery，内容为 gk 卡片时自动用 gk）、
- *      ratio（16:9/4:3/1:1，默认 16:9）
+ *      ratio（16:9/4:3/1:1，默认 16:9）、gk（true/false，是否把 gk 卡片拆成 slide）
  * 注册为 async：这样才可以嵌套主题里的异步标签（如 {% gkfile %}）。
  */
 hexo.extend.tag.register('swiper', async function(args, content) {
@@ -362,10 +373,15 @@ hexo.extend.tag.register('swiper', async function(args, content) {
   // 计算 aspect-ratio
   const ratioMap = { '16:9': '56.25%', '4:3': '75%', '1:1': '100%' };
   const paddingBottom = ratioMap[ratio] || '56.25%';
-  // 兼容 Shoka 主题 gk 卡片：{% gk %} / {% gkfile %} 的输出自动按卡片拆分成多张 slide
   const body = typeof content === 'string' ? content : '';
-  const gkCards = body.indexOf('swiper-slide') === -1 ? splitGkCards(body) : [];
-  const style = opts.style ? opts.style : (isGkCardHtml(body) ? 'gk' : 'gallery');
+  // 兼容 Shoka 主题 gk 卡片：{% gk %} / {% gkfile %} 的输出按卡片拆分成多张 slide
+  // 开关优先级：tag 参数 gk:true/false > 显式 style:gk > 配置项 swiper.gk_slides（默认关闭）
+  const gk_param = opts.gk === undefined ? null : opts.gk !== 'false';
+  const gk_enabled = gk_param !== null ? gk_param : (opts.style === 'gk' || gkSlidesEnabled());
+  const gkCards = gk_enabled && body.indexOf('swiper-slide') === -1 ? splitGkCards(body) : [];
+  // 容器风格：显式 style 优先；否则 gk 卡片（或 gk slide）用 gk 风格
+  const gk_like = body.indexOf('as-slide--gk') !== -1 || (gk_enabled && isGkCardHtml(body));
+  const style = opts.style ? opts.style : (gk_like ? 'gk' : 'gallery');
   const swiperItemData = gkCards.length > 0 ? gkCards.map(gkCardSlide).join('') : body;
 
   const data = {
@@ -386,6 +402,11 @@ hexo.extend.tag.register('swiper', async function(args, content) {
  * <div class="gk-img"><div class="gallery"><img><img>…</div></div>，
  * 默认是纵向堆叠。这里在页面渲染后按需注入 Swiper 资源，
  * 由 swiper_init.js 在浏览器端把 .gallery 原地升级为轮播。
+ *
+ * 开关：
+ *   swiper.gk_carousel: true（默认）—— 多图条目默认轮播，条目可用 carousel:false 关闭
+ *   swiper.gk_carousel: false       —— 多图条目默认堆叠，条目可用 carousel:true 单独开启
+ * 条目开关由主题 gk 标签渲染成 .gk-img 上的 data-gk-carousel="on|off"。
  */
 hexo.extend.filter.register('after_render:html', function (html) {
   // 只处理完整文档（文章正文渲染结果里没有 </head>，直接跳过）
@@ -394,6 +415,11 @@ hexo.extend.filter.register('after_render:html', function (html) {
 
   const theme_config = hexo.theme.config || {};
   const config = hexo.config.swiper || theme_config.swiper || {};
+  // 总开关
+  const gk_carousel = config.gk_carousel !== false;
+  // 总开关关闭时，只有条目显式开启（data-gk-carousel="on"）才需要注入资源
+  if (!gk_carousel && html.indexOf('data-gk-carousel="on"') === -1) return html;
+
   const css_list = [
     config.swiper_css ? urlFor(config.swiper_css) : cdn + '/lib/swiper.min.css',
     config.custom_css ? urlFor(config.custom_css) : cdn + '/lib/swiperstyle.css',
@@ -409,7 +435,11 @@ hexo.extend.filter.register('after_render:html', function (html) {
   };
 
   const css_text = css_list.filter(url => !loaded(url)).map(url => `<link rel="stylesheet" href="${url}">`).join('');
-  const js_text = js_list.filter(url => !loaded(url)).map(url => `<script src="${url}"></script>`).join('');
+  let js_text = js_list.filter(url => !loaded(url)).map(url => `<script src="${url}"></script>`).join('');
+  // 把总开关交给 swiper_init.js（条目开关在 data-gk-carousel 上）
+  if (html.indexOf('__GK_CAROUSEL_DEFAULT__') === -1) {
+    js_text = `<script>window.__GK_CAROUSEL_DEFAULT__=${gk_carousel ? 'true' : 'false'};</script>` + js_text;
+  }
   if (!css_text && !js_text) return html;
 
   return html.replace('</head>', css_text + '</head>').replace('</body>', js_text + '</body>');
