@@ -994,10 +994,12 @@ div#swiper_container {
     line-height:1;
     color:rgba(0,0,0,0.55);
 }
-.gk-img .gk-swiper .gk-nav--prev::after {
+.gk-img .gk-swiper .gk-nav--prev::after,
+.gk-img .gk-swiper .swiper-button-prev::after {
     content:'‹';
 }
-.gk-img .gk-swiper .gk-nav--next::after {
+.gk-img .gk-swiper .gk-nav--next::after,
+.gk-img .gk-swiper .swiper-button-next::after {
     content:'›';
 }
 .gk-img .gk-swiper .gk-dots {

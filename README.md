@@ -56,6 +56,7 @@
   |custom_js|url|【可选】swiper初始化方法|
   |gk_slides|true/false|【可选】`{% swiper %}` 是否把 gk 卡片拆成 slide，默认 false；tag 参数 `gk:true/false` 可覆盖|
   |gk_carousel|true/false|【可选】gk 卡片内的多图是否用轮播展示，默认 true；条目中用 `carousel: true/false` 覆盖|
+  |gk_autoplay|number|【可选】gk 卡片多图轮播的自动播放间隔（毫秒），默认 0 表示不自动播放|
 
 4. 使用方法
   在文章的`front_matter`中添加`swiper_index`配置项即可。
@@ -210,7 +211,7 @@
 
   **gk 卡片多图自动轮播**
 
-  主题 gk 卡片在条目包含多张图片时会输出 `.gk-img > .gallery` 的纵向堆叠，插件检测到这种多图卡片后会自动注入 Swiper 资源，并在浏览器端把该区域原地升级为轮播（桌面端圆点 + 左右箭头，移动端滑动 + 圆点）：
+  主题 gk 卡片在条目包含多张图片时会输出 `.gk-img > .gallery` 的纵向堆叠。插件在**构建期**把这种多图区域转换成 `.gk-swiper` 轮播结构（桌面端圆点 + 左右箭头，移动端滑动 + 圆点），运行时由 `swiper_init.js` 初始化实例，同时注入所需资源：
 
   ```yaml
   - name: 示例手办
@@ -233,6 +234,7 @@
   条目级的 `carousel` 由主题 gk 标签渲染成 `.gk-img[data-gk-carousel="on|off"]`，插件读取后决定该条目是否轮播；没写 `carousel` 的条目跟随总开关。
 
   - 单图卡片保持原样，不会被改写；
+  - 轮播默认不自动播放，可用配置 `swiper.gk_autoplay`（毫秒）打开，例如 `gk_autoplay: 4000`；
   - 图片仍走主题的 `data-src` 懒加载：初始化时只加载当前与下一张，切换时继续补充；
   - 轮播内会忽略 gk 数据里为纵向堆叠写的 `style: zoom:50%` 缩放，保证与同页单图卡片的图片尺寸一致（需要保留可在自定义 CSS 中覆盖）；
   - 仅当页面确实存在需要轮播的多图 gk 卡片时才注入 Swiper 资源，已加载过资源的页面不会重复注入。

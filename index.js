@@ -163,10 +163,13 @@ function injectArticleSwiperAssets() {
 // ==================== gk 卡片多图轮播（构建期转换） ====================
 // Shoka 主题的 gk 卡片会把多张图片堆叠在 .gk-img > .gallery 中；
 // 这里在文章/页面渲染完成后把多图区域转换成 Swiper 结构，运行时由 swiper_init.js 初始化。
+// 开关：条目上的 data-gk-carousel="on|off"（主题 gk 标签按 item.carousel 输出）优先，
+//       缺省跟随配置 swiper.gk_carousel（默认 true）。
 hexo.extend.filter.register('after_post_render', function(data) {
   if (!data || typeof data.content !== 'string') return data;
   if (data.content.indexOf('class="gk-img"') === -1) return data;
-  const converted = transformGkGalleries(data.content, gkAutoplayDelay());
+  const config = hexo.config.swiper || (hexo.theme.config && hexo.theme.config.swiper) || {};
+  const converted = transformGkGalleries(data.content, gkAutoplayDelay(), config.gk_carousel !== false);
   if (converted !== data.content) {
     data.content = converted;
     injectArticleSwiperAssets();
@@ -259,21 +262,36 @@ function gkAutoplayDelay() {
   return isNaN(delay) || delay < 0 ? 0 : delay;
 }
 
+/** gk 数据里为纵向堆叠写的 style: zoom:xx% 缩放，转成轮播后去掉，保证与单图卡片尺寸一致 */
+function stripZoomStyle(imgTag) {
+  return imgTag.replace(/\sstyle="([^"]*)"/i, function(matched, style) {
+    const kept = style.split(';')
+      .map(part => part.trim())
+      .filter(part => part && !/^zoom\s*:/i.test(part))
+      .join(';');
+    return kept ? ` style="${kept}"` : '';
+  });
+}
+
 /**
  * 把 gk 卡片的多图区域（.gk-img > .gallery）转换为 Swiper 轮播结构，
- * 单图卡片保持主题原有渲染。运行时的初始化见 lib/swiper_init.js。
+ * 单图卡片与关闭了轮播的条目保持主题原有渲染。运行时初始化见 lib/swiper_init.js。
  */
-function transformGkGalleries(html, autoplay) {
+function transformGkGalleries(html, autoplay, defaultOn) {
   if (typeof html !== 'string' || html.indexOf('class="gk-img"') === -1) return html;
   const blocks = findDivBlocks(html, 'gk-img');
   // 从后往前替换，避免前面的替换影响后面的索引
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
+    // 条目开关：data-gk-carousel="on|off" 优先，缺省跟随总开关
+    const marker = /data-gk-carousel="(on|off)"/.exec(block.html);
+    const enabled = marker ? marker[1] === 'on' : defaultOn;
+    if (!enabled) continue;
     const gallery = findDivBlocks(block.html, 'gallery')[0];
     if (!gallery) continue;
     const imgs = gallery.html.match(/<img\b[^>]*>/g);
     if (!imgs || imgs.length < 2) continue;
-    const slides = imgs.map(img => `<div class="swiper-slide">${img}</div>`).join('');
+    const slides = imgs.map(img => `<div class="swiper-slide">${stripZoomStyle(img)}</div>`).join('');
     const swiperHtml = `<div class="gk-swiper swiper" data-gk-swiper data-autoplay="${autoplay}">`
       + `<div class="swiper-wrapper">${slides}</div>`
       + '<div class="swiper-button-prev gk-nav"></div>'
@@ -379,6 +397,14 @@ hexo.extend.tag.register('swiper', async function(args, content) {
   const gk_param = opts.gk === undefined ? null : opts.gk !== 'false';
   const gk_enabled = gk_param !== null ? gk_param : (opts.style === 'gk' || gkSlidesEnabled());
   const gkCards = gk_enabled && body.indexOf('swiper-slide') === -1 ? splitGkCards(body) : [];
+  // gk 卡片不拆成 slide 时，swiper 容器没有意义：直接输出原内容，
+  // 否则 .gk-item 会落进 .swiper-wrapper 造成布局错乱。
+  // 条目内的多图轮播由构建期转换负责，不需要外层 swiper 包裹。
+  if (!gk_enabled && body.indexOf('swiper-slide') === -1 && isGkCardHtml(body)) {
+    hexo.log.warn('[hexo-shoka-swiper] {% swiper %} 里的 gk 卡片没有拆成 slide（gk:false / gk_slides:false），已忽略 swiper 容器；条目内多图轮播会自动生效，无需 {% swiper %} 包裹。');
+    injectArticleSwiperAssets();
+    return body;
+  }
   // 容器风格：显式 style 优先；否则 gk 卡片（或 gk slide）用 gk 风格
   const gk_like = body.indexOf('as-slide--gk') !== -1 || (gk_enabled && isGkCardHtml(body));
   const style = opts.style ? opts.style : (gk_like ? 'gk' : 'gallery');
@@ -395,52 +421,3 @@ hexo.extend.tag.register('swiper', async function(args, content) {
   };
   return env.renderString(swiperNjkSrc, data);
 }, { ends: true, async: true });
-
-// ==================== gk 卡片多图轮播 ====================
-/**
- * Shoka 主题的 `{% gk %}` / `{% gkfile %}` 在条目有多张图片时会输出
- * <div class="gk-img"><div class="gallery"><img><img>…</div></div>，
- * 默认是纵向堆叠。这里在页面渲染后按需注入 Swiper 资源，
- * 由 swiper_init.js 在浏览器端把 .gallery 原地升级为轮播。
- *
- * 开关：
- *   swiper.gk_carousel: true（默认）—— 多图条目默认轮播，条目可用 carousel:false 关闭
- *   swiper.gk_carousel: false       —— 多图条目默认堆叠，条目可用 carousel:true 单独开启
- * 条目开关由主题 gk 标签渲染成 .gk-img 上的 data-gk-carousel="on|off"。
- */
-hexo.extend.filter.register('after_render:html', function (html) {
-  // 只处理完整文档（文章正文渲染结果里没有 </head>，直接跳过）
-  if (typeof html !== 'string' || html.indexOf('</head>') === -1) return html;
-  if (!/class="gk-img"[\s\S]*?class="gallery"/.test(html)) return html;
-
-  const theme_config = hexo.theme.config || {};
-  const config = hexo.config.swiper || theme_config.swiper || {};
-  // 总开关
-  const gk_carousel = config.gk_carousel !== false;
-  // 总开关关闭时，只有条目显式开启（data-gk-carousel="on"）才需要注入资源
-  if (!gk_carousel && html.indexOf('data-gk-carousel="on"') === -1) return html;
-
-  const css_list = [
-    config.swiper_css ? urlFor(config.swiper_css) : cdn + '/lib/swiper.min.css',
-    config.custom_css ? urlFor(config.custom_css) : cdn + '/lib/swiperstyle.css',
-  ];
-  const js_list = [
-    config.swiper_js ? urlFor(config.swiper_js) : cdn + '/lib/swiper.min.js',
-    config.custom_js ? urlFor(config.custom_js) : cdn + '/lib/swiper_init.js',
-  ];
-  // 首页轮播或文章内轮播可能已经注入过同样的资源，避免重复加载
-  const loaded = url => {
-    const name = String(url).split('?')[0].split('/').pop();
-    return name.length > 0 && html.includes(name);
-  };
-
-  const css_text = css_list.filter(url => !loaded(url)).map(url => `<link rel="stylesheet" href="${url}">`).join('');
-  let js_text = js_list.filter(url => !loaded(url)).map(url => `<script src="${url}"></script>`).join('');
-  // 把总开关交给 swiper_init.js（条目开关在 data-gk-carousel 上）
-  if (html.indexOf('__GK_CAROUSEL_DEFAULT__') === -1) {
-    js_text = `<script>window.__GK_CAROUSEL_DEFAULT__=${gk_carousel ? 'true' : 'false'};</script>` + js_text;
-  }
-  if (!css_text && !js_text) return html;
-
-  return html.replace('</head>', css_text + '</head>').replace('</body>', js_text + '</body>');
-});
